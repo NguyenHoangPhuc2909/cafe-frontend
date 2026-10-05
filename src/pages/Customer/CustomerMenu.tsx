@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import ProductCard from '../../components/common/ProductCard';
 import type { Product } from '../../types/product';
+import ProductModal from '../../components/common/ProductModal';
+
 
 // Dữ liệu mồi hiển thị giao diện
 const MOCK_PRODUCTS: Product[] = [
@@ -43,6 +45,7 @@ const MOCK_PRODUCTS: Product[] = [
 
 const Customer: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<string>('Tất cả');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); 
   const categories = ['Tất cả', 'Cà phê Việt', 'Ủ lạnh 18h', 'Trà Thượng Hạng', 'Sinh tố tươi'];
 
   const filteredProducts = activeCategory === 'Tất cả'
@@ -107,12 +110,20 @@ const Customer: React.FC = () => {
             <ProductCard
               key={product.id}
               product={product}
+              onClick={(p) => setSelectedProduct(p)}
               onAddToCart={() => alert(`Đã thêm ${product.name}`)}
             />
           ))}
         </div>
       </div>
 
+      {/* 👉 GỌI COMPONENT POPUP RA Ở ĐÂY */}
+      <ProductModal
+        isOpen={selectedProduct !== null}
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={(p) => alert(`Đã thêm ${p.name} từ Modal!`)}
+      />
     </div>
   );
 };

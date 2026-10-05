@@ -6,5 +6,6 @@ export interface Product {
   imageUrl: string;
   category: string;
   origin?: string;
+  options?: string;
   badge?: 'Mới' | 'Best Seller' | 'Signature' | 'Đặc sản' | 'Cổ điển' | null;
 }
