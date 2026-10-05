@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import CustomerLayout from './layouts/CustomerLayout';
 import './App.css';
-import CustomerMenu from './pages/Customer/Customer';
+import CustomerMenu from './pages/Customer/CustomerMenu';
 
 
 function App() {
