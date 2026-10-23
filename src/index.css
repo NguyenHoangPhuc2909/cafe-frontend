@@ -81,6 +81,26 @@
   }
 }
 
+/* Reserve space only when the mobile cart summary is visible. */
+@media (max-width: 767px) {
+  .customer-shell--with-cart { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+}
+
+.customer-shell button:focus-visible,
+.customer-shell a:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .customer-shell *, .customer-shell *::before, .customer-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ─── Material Symbols ──────────────────────────────── */
 .material-symbols-outlined {
   font-variation-settings:

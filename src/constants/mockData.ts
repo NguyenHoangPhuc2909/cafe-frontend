@@ -57,7 +57,7 @@ export const MOCK_PRODUCTS: Product[] = [
     price: 59000,
     imageUrl: '/images/caramel_macchiato.png',
     category: 'Espresso Bar',
-    badge: 'Cổ Điển',
+    badge: 'Cổ điển',
     origin: 'Ý & Việt Blend',
   },
   {
