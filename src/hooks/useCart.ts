@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import type { CartItem } from '../types/cart';
 import type { Product } from '../types/product';
 import { addCartItem, changeCartQuantity, cartTotals, reconcileCart } from '../utils/cart';
+import { subtractSubmittedItems } from '../utils/guest';
 
 export const useCart = (initialItems: CartItem[] = []) => {
   const [cart, setCart] = useState<CartItem[]>(initialItems);
@@ -26,9 +27,13 @@ export const useCart = (initialItems: CartItem[] = []) => {
 
   const clearCart = useCallback(() => setCart([]), []);
 
+  const consumeSubmittedItems = useCallback((items: CartItem[]) => {
+    setCart(current => subtractSubmittedItems(current, items));
+  }, []);
+
   const syncProducts = useCallback((products: Product[]) => {
     setCart(prev => reconcileCart(prev, products));
   }, []);
 
-  return { cart, addItem, addItemWithOptions, updateQty, removeItem, clearCart, syncProducts, ...cartTotals(cart) };
+  return { cart, addItem, addItemWithOptions, updateQty, removeItem, clearCart, consumeSubmittedItems, syncProducts, ...cartTotals(cart) };
 };

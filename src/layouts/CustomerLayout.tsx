@@ -4,16 +4,30 @@ import Footer from '../components/layout/Footer';
 import { CustomerCartProvider } from '../contexts/CustomerCartProvider';
 import { useCustomerCart } from '../hooks/useCustomerCart';
 import { formatCurrency } from '../utils/format';
+import { GuestSessionProvider } from '../contexts/GuestSessionProvider';
+import { useGuestSession } from '../hooks/useGuestSession';
+import { CheckoutProvider } from '../contexts/CheckoutProvider';
+import { useCheckout } from '../hooks/useCheckout';
 
 function CustomerShell() {
   const { itemCount, total } = useCustomerCart();
   const { pathname } = useLocation();
+  const { session, isChecking, sessionError, canRefreshSession, refreshSession, attempt } = useGuestSession();
   const showCartBar = pathname === '/' && itemCount > 0;
+  const { order } = useCheckout();
 
   return (
     <div className={`customer-shell min-h-screen min-w-0 flex flex-col selection:bg-secondary-fixed selection:text-primary ${showCartBar ? 'customer-shell--with-cart' : ''}`}>
       <Header />
       <main className="flex-grow min-w-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 md:py-8">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm" aria-live="polite">
+          <p className="min-w-0 break-words text-primary">{isChecking ? 'Đang kiểm tra phiên bàn…' : session ? `Đặt món tại ${session.tableName}` : sessionError ?? 'Quét QR tại bàn để bắt đầu đặt món.'}</p>
+          {sessionError && canRefreshSession && <button onClick={() => void refreshSession()} disabled={isChecking} className="min-h-11 rounded-lg border border-primary px-3 font-semibold text-primary disabled:opacity-50">Kiểm tra lại</button>}
+          {attempt && pathname !== '/cart' && <Link to="/cart" className="min-h-11 content-center font-semibold text-primary underline">Xem kết quả đơn</Link>}
+          {order && <Link to={order.paymentStatus === 'paid' ? '/order-status' : '/checkout'} className="min-h-11 content-center font-semibold text-primary underline">
+            {order.paymentStatus === 'paid' ? 'Theo dõi món đã thanh toán' : 'Tiếp tục thanh toán'}
+          </Link>}
+        </div>
         <Outlet />
       </main>
       <Footer />
@@ -31,7 +45,7 @@ function CustomerShell() {
 }
 
 function CustomerLayout() {
-  return <CustomerCartProvider><CustomerShell /></CustomerCartProvider>;
+  return <CustomerCartProvider><GuestSessionProvider><CheckoutProvider><CustomerShell /></CheckoutProvider></GuestSessionProvider></CustomerCartProvider>;
 }
 
 export default CustomerLayout;

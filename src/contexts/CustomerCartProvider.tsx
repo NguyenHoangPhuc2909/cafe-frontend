@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Product } from '../types/product';
+import type { CartItem } from '../types/cart';
 import { useCart } from '../hooks/useCart';
 import { getPublicMenu } from '../services/products';
 import { restoreCustomerCart } from '../utils/cart';
+import { subtractSubmittedItems } from '../utils/guest';
 import { CustomerCartContext } from './customerCart';
 
 const STORAGE_KEY = 'cafe.customer-cart.v1';
@@ -15,7 +17,7 @@ function readStoredCart() {
 export function CustomerCartProvider({ children }: { children: ReactNode }) {
   const [initial] = useState(readStoredCart);
   const cartState = useCart(initial.items);
-  const { cart, syncProducts } = cartState;
+  const { cart, syncProducts, consumeSubmittedItems } = cartState;
   const [note, setNote] = useState(initial.note);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,6 +27,19 @@ export function CustomerCartProvider({ children }: { children: ReactNode }) {
   const reloadMenu = useCallback(() => {
     setIsLoading(true); setMenuError(null); setVersion(current => current + 1);
   }, []);
+
+  const completeSubmittedOrder = useCallback((items: CartItem[], submittedNote: string) => {
+    // Persist immediately: the response may arrive after navigating away from CustomerLayout.
+    try {
+      const stored = readStoredCart();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        items: subtractSubmittedItems(stored.items, items),
+        note: stored.note === submittedNote ? '' : stored.note,
+      }));
+    } catch { /* In-memory completion still works when local storage is unavailable. */ }
+    consumeSubmittedItems(items);
+    setNote(current => current === submittedNote ? '' : current);
+  }, [consumeSubmittedItems]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -57,6 +72,6 @@ export function CustomerCartProvider({ children }: { children: ReactNode }) {
   }, [reloadMenu]);
 
   return <CustomerCartContext.Provider value={{
-    ...cartState, products, isLoading, menuError, reloadMenu, note, setNote,
+    ...cartState, products, isLoading, menuError, reloadMenu, note, setNote, completeSubmittedOrder,
   }}>{children}</CustomerCartContext.Provider>;
 }
