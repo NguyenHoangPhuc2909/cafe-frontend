@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   if (order.paymentStatus === 'paid') return <Navigate to="/order-status" replace />;
   const status = order.paymentStatus;
   const canEdit = ['unpaid', 'failed', 'expired'].includes(status);
-  const editCart = () => { returnToCart(); navigate('/cart', { replace: true }); };
+  const editCart = async () => { if (await returnToCart()) navigate('/cart', { replace: true }); };
 
   return <div className="mx-auto max-w-5xl animate-fade-up">
     <CustomerFlowSteps current={2} />
@@ -37,7 +37,7 @@ export default function CheckoutPage() {
           {order.method === 'transfer' ? <div className="mt-5 rounded-xl bg-surface-container-low p-5 text-center">
             <span aria-hidden="true" className="material-symbols-outlined text-6xl text-primary">qr_code_2</span>
             <p className="mt-2 font-semibold text-primary">Khu vực QR thanh toán mẫu</p>
-            <p className="mt-2 text-sm text-on-surface-variant">Chưa có thông tin chuyển tiền thật. Dùng điều khiển thử nghiệm phía dưới để kiểm tra kết quả.</p>
+            <p className="mt-2 text-sm text-on-surface-variant">QR minh họa, không chuyển tiền thật. Nhân viên sẽ xác nhận thanh toán trong bản thử.</p>
             <p className="mt-4 text-xl font-bold text-primary">{formatCurrency(order.total)}</p>
           </div> : <div className="mt-5 rounded-xl bg-surface-container-low p-5 text-sm leading-relaxed">
             <p className="font-semibold text-primary">Thanh toán trực tiếp với nhân viên</p>
@@ -67,14 +67,10 @@ export default function CheckoutPage() {
         {canEdit && status !== 'expired' && <button type="button" onClick={editCart} className="mt-4 min-h-11 text-sm font-semibold text-primary underline">Chỉnh sửa giỏ hàng</button>}
       </section>
     </div>
-    {import.meta.env.DEV && <section aria-label="Điều khiển thử thanh toán" className="mt-6 rounded-xl border border-dashed border-outline-variant p-4">
-      <h2 className="text-sm font-semibold text-primary">Điều khiển thử nghiệm · Mô phỏng kết quả từ hệ thống hoặc nhân viên</h2>
-      <div className="mt-3 flex flex-wrap gap-3">
-        <button type="button" disabled={status !== 'verifying'} onClick={() => dispatch({ type: 'paid' })} className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary disabled:opacity-40">Mô phỏng đã nhận tiền</button>
-        <button type="button" disabled={status !== 'verifying'} onClick={() => dispatch({ type: 'failed' })} className="min-h-11 rounded-xl border border-primary px-4 text-sm font-semibold text-primary disabled:opacity-40">Mô phỏng thất bại</button>
-        <button type="button" disabled={status === 'expired'} onClick={() => dispatch({ type: 'expire' })} className="min-h-11 rounded-xl border border-primary px-4 text-sm font-semibold text-primary disabled:opacity-40">Mô phỏng hết hạn</button>
-      </div>
-    </section>}
+    {import.meta.env.DEV && <div className="mt-6 rounded-xl border border-dashed border-outline-variant p-4 text-sm">
+      <p>Thử hai vai: giữ trang khách tại đây, mở màn hình Staff ở tab khác để xác nhận tiền.</p>
+      <Link to="/staff/orders" target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline">Mở màn hình Staff thử nghiệm</Link>
+    </div>}
     <Link to="/" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold text-primary">Về thực đơn</Link>
   </div>;
 }

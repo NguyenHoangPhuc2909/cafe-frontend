@@ -12,14 +12,13 @@ const stages = {
 };
 
 export default function OrderStatusPage() {
-  const { order, dispatch, finishOrder } = useCheckout();
+  const { order, finishOrder } = useCheckout();
   const navigate = useNavigate();
   if (!order) return <Navigate to="/cart" replace />;
   if (order.paymentStatus !== 'paid' || !order.preparationStatus) return <Navigate to="/checkout" replace />;
   const current = preparationStates.indexOf(order.preparationStatus);
   const stage = stages[order.preparationStatus];
   const finish = () => { finishOrder(); navigate('/', { replace: true }); };
-  const nextLabel = ['Bắt đầu pha chế', 'Đã pha xong', 'Đã phục vụ'][current];
 
   return <div className="mx-auto max-w-5xl animate-fade-up">
     <CustomerFlowSteps current={3} />
@@ -42,9 +41,9 @@ export default function OrderStatusPage() {
       </section>
       <CheckoutSummary order={order} />
     </div>
-    {import.meta.env.DEV && order.preparationStatus !== 'served' && <section className="mt-6 rounded-xl border border-dashed border-outline-variant p-4">
-      <h2 className="text-sm font-semibold text-primary">Điều khiển thử nghiệm · Mô phỏng thao tác nhân viên</h2>
-      <button type="button" onClick={() => dispatch({ type: 'advance' })} className="mt-3 min-h-11 rounded-xl bg-primary px-5 text-sm font-semibold text-on-primary">{nextLabel}</button>
-    </section>}
+    {import.meta.env.DEV && order.preparationStatus !== 'served' && <div className="mt-6 rounded-xl border border-dashed border-outline-variant p-4 text-sm">
+      <p>Tiến độ cập nhật khi nhân viên thao tác trong tab Staff.</p>
+      <Link to="/staff/kds" target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline">Mở quầy pha chế thử nghiệm</Link>
+    </div>}
   </div>;
 }

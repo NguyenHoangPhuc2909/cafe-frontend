@@ -5,7 +5,7 @@ export interface CheckoutValue {
   order: CheckoutOrder | null;
   startCheckout: () => boolean;
   dispatch: (event: CheckoutEvent) => void;
-  returnToCart: () => void;
+  returnToCart: () => Promise<boolean>;
   finishOrder: () => void;
   error: string | null;
 }

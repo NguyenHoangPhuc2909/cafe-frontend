@@ -32,7 +32,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
     setConnecting(true); setError(null);
     try {
       await connectTable(qrCode);
-      if (order?.paymentStatus === 'expired') returnToCart();
+      if (order?.paymentStatus === 'expired') await returnToCart();
       navigate('/', { replace: true });
     }
     catch (error) { setError(guestErrorMessage(error)); }

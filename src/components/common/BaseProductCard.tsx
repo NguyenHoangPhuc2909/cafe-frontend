@@ -123,7 +123,7 @@ const BaseProductCard: React.FC<BaseProductCardProps> = ({
                   className="w-8 h-8 rounded-xl border border-outline-variant/60 bg-surface-container
                     hover:bg-surface-container-high text-on-surface-variant hover:text-primary
                     flex items-center justify-center transition-all active:scale-90"
-                  title="Tuỳ chỉnh size, đá, đường…"
+                  title="Chi tiết món và tùy chọn"
                 >
                   <span className="material-symbols-outlined text-[15px]">tune</span>
                 </button>

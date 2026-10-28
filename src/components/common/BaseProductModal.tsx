@@ -11,9 +11,12 @@ interface BaseProductModalProps {
   onClose: () => void;
   onConfirm: (product: Product, optionsStr: string, qty: number) => void;
   variant?: 'customer' | 'staff';
+  allowSizeSelection?: boolean;
+  disabled?: boolean;
+  disabledMessage?: string;
 }
 
-function ProductModalContent({ product, onClose, onConfirm, variant = 'customer' }:
+function ProductModalContent({ product, onClose, onConfirm, variant = 'customer', allowSizeSelection = true, disabled = false, disabledMessage }:
   BaseProductModalProps & { product: Product }) {
   const [size, setSize] = useState('M');
   const [ice, setIce] = useState('Ít đá');
@@ -22,7 +25,8 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
   const [qty, setQty] = useState(1);
   const panelRef = useRef<HTMLDivElement>(null);
   const isStaff = variant === 'staff';
-  const unitPrice = product.price + (isStaff && size === 'L' ? 10000 : 0);
+  const hasSizeOptions = isStaff && allowSizeSelection;
+  const unitPrice = product.price + (hasSizeOptions && size === 'L' ? 10000 : 0);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -48,8 +52,9 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
   }, [onClose]);
 
   const handleConfirm = () => {
+    if (disabled) return;
     const options = isStaff
-      ? [`Size ${size}`, ice, `${sugar} ngọt`, note.trim() ? `Ghi chú: ${note.trim()}` : ''].filter(Boolean).join(' · ')
+      ? [hasSizeOptions ? `Size ${size}` : '', ice, `${sugar} ngọt`, note.trim() ? `Ghi chú: ${note.trim()}` : ''].filter(Boolean).join(' · ')
       : '';
     onConfirm({ ...product, price: unitPrice }, options, qty);
     onClose();
@@ -78,8 +83,9 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
               <p className="mt-4 font-headline-md text-xl font-bold text-primary">{formatCurrency(unitPrice)}</p>
             </div>
             {isStaff && <div className="space-y-5 border-t border-outline-variant/30 pt-5">
-              <OptionGroup label="Chọn size" options={['M', 'L']} value={size} onChange={setSize} />
-              {size === 'L' && <p className="text-xs text-secondary">Size L thêm {formatCurrency(10000)}</p>}
+              {hasSizeOptions && <OptionGroup label="Chọn size" options={['M', 'L']} value={size} onChange={setSize} />}
+              {hasSizeOptions && size === 'L' && <p className="text-xs text-secondary">Size L thêm {formatCurrency(10000)}</p>}
+              {!hasSizeOptions && <p className="text-xs text-on-surface-variant">Đơn giá theo thực đơn của quán. Tùy chọn đá và đường không cộng phụ thu.</p>}
               <OptionGroup label="Lượng đá" options={['Nhiều đá', 'Ít đá', 'Không đá']} value={ice} onChange={setIce} />
               <OptionGroup label="Độ ngọt" options={['100%', '70%', '50%', 'Không đường']} value={sugar} onChange={setSugar} />
               <div>
@@ -90,7 +96,8 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
           </div>
           <div className="shrink-0 space-y-3 border-t border-outline-variant/30 bg-surface-container-lowest p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3"><span className="text-sm font-semibold text-primary">Số lượng</span><QuantityStepper quantity={qty} onChange={setQty} size="md" /></div>
-            <button onClick={handleConfirm} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 font-semibold text-on-primary transition-colors hover:bg-primary-container">
+            {disabled && disabledMessage && <p role="status" className="text-sm text-error">{disabledMessage}</p>}
+            <button onClick={handleConfirm} disabled={disabled} className="flex min-h-12 w-full items-center justify-between gap-3 rounded-xl bg-primary px-4 py-3 font-semibold text-on-primary transition-colors hover:bg-primary-container disabled:cursor-not-allowed disabled:opacity-40">
               <span>{isStaff ? 'Thêm vào đơn' : 'Thêm vào giỏ'}</span>
               <span className="flex shrink-0 items-center gap-2">{formatCurrency(unitPrice * qty)}<span aria-hidden="true" className="material-symbols-outlined text-xl">add_shopping_cart</span></span>
             </button>

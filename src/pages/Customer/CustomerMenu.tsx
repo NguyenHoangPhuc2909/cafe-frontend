@@ -9,7 +9,7 @@ import {
   SORT_LABELS,
   SORT_CYCLE,
   type SortMode
-} from '../../constants/mockData';
+} from '../../constants/menu';
 
 const CustomerMenu: React.FC = () => {
   const { products, isLoading, menuError, reloadMenu, addItem, addItemWithOptions } = useCustomerCart();

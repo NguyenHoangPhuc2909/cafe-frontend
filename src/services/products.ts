@@ -1,6 +1,6 @@
 import type { ApiResponse, ProductResponse } from '../types/api';
-import { toProduct } from '../utils/products';
-import { http } from './http';
+import { toProduct } from '../utils/products.ts';
+import { http } from './http.ts';
 
 export async function getPublicMenu(signal?: AbortSignal) {
   const { data } = await http.get<ApiResponse<ProductResponse[]>>('/products', { signal });
