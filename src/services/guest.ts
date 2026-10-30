@@ -50,6 +50,32 @@ export async function createGuestOrder(access: TableAccess, request: GuestOrderR
   return order;
 }
 
+export async function getGuestOrder(access: TableAccess, orderId: number, signal?: AbortSignal,): Promise<GuestOrderResponse> {
+  if(!Number.isSafeInteger(orderId) || orderId <= 0){
+    throw new Error("Mã đơn hàng không hợp lệ.")
+  }
+
+  const { data } = await http.get<ApiResponse<GuestOrderResponse>>(
+    `/guest/orders/${orderId}`,
+    {
+      headers: {
+        'X-Table-Session-Token': access.accessToken,
+      },
+      signal,
+    },
+  );
+
+  const order = unwrap(data);
+
+  if(!isGuestOrder(order) || order.id !== orderId
+    || order.sessionId !== access.sessionId
+    || order.tableId !== access.tableId) {
+      throw new Error("Thông tin đơn hàng trả về không hợp lệ.");
+    }
+
+    return order;
+}
+
 export function guestErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
     const message: unknown = error.response?.data?.message;

@@ -10,9 +10,13 @@ function TableAccess({ qrCode }: { qrCode: string }) {
   const navigate = useNavigate();
   const { connectTable, isChecking, session, attempt } = useGuestSession();
   const { itemCount } = useCustomerCart();
-  const { order, returnToCart } = useCheckout();
-  const hasActiveOrder = order && order.paymentStatus !== 'expired';
+  const { order } = useCheckout();
   const [table, setTable] = useState<CafeTableResponse | null>(null);
+  const canConnect = !attempt || (
+    attempt.state === 'success'
+    && order !== null
+    && table?.id === order.tableId
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
@@ -32,8 +36,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
     setConnecting(true); setError(null);
     try {
       await connectTable(qrCode);
-      if (order?.paymentStatus === 'expired') await returnToCart();
-      navigate('/', { replace: true });
+      navigate(order ? '/checkout' : '/', { replace: true });
     }
     catch (error) { setError(guestErrorMessage(error)); }
     finally { setConnecting(false); }
@@ -46,9 +49,26 @@ function TableAccess({ qrCode }: { qrCode: string }) {
     {!loading && table && <>
       <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">{table.isActive ? 'Kiểm tra đúng bàn bạn đang ngồi rồi bắt đầu chọn món.' : 'Bàn đang ngừng sử dụng. Bạn vui lòng liên hệ nhân viên.'}</p>
       {session && itemCount > 0 && <p className="mt-4 text-sm text-on-surface-variant">Bạn đang chọn món cho {session.tableName}. Nếu chuyển sang bàn hoặc phiên phục vụ khác, giỏ hiện tại sẽ được xóa sau khi kết nối thành công.</p>}
-      {hasActiveOrder ? <Link to={order.paymentStatus === 'paid' ? '/order-status' : '/checkout'} className="mt-6 inline-flex min-h-12 items-center rounded-xl bg-primary px-6 font-semibold text-on-primary">Tiếp tục đơn của {order.tableName} trước khi chọn bàn</Link>
-        : attempt ? <Link to="/cart" className="mt-6 inline-flex min-h-12 items-center rounded-xl bg-primary px-6 font-semibold text-on-primary">Xem kết quả đơn trước khi chọn bàn</Link>
-        : <button onClick={() => void connect()} disabled={!table.isActive || connecting || isChecking} className="mt-6 min-h-12 w-full rounded-xl bg-primary px-6 font-semibold text-on-primary disabled:opacity-50">{connecting ? 'Đang vào bàn…' : `Bắt đầu đặt món · ${table.name}`}</button>}
+      {!canConnect ? (
+  <Link
+    to={order ? '/checkout' : '/cart'}
+    className="mt-6 inline-flex min-h-12 items-center rounded-xl bg-primary px-6 font-semibold text-on-primary"
+  >
+    Xem đơn hiện tại trước khi chọn bàn
+  </Link>
+) : (
+  <button
+    onClick={() => void connect()}
+    disabled={!table.isActive || connecting || isChecking}
+    className="mt-6 min-h-12 w-full rounded-xl bg-primary px-6 font-semibold text-on-primary disabled:opacity-50"
+  >
+    {connecting
+      ? 'Đang vào bàn…'
+      : order
+        ? 'Xác nhận lại phiên bàn'
+        : `Bắt đầu đặt món · ${table.name}`}
+  </button>
+)}
     </>}
     {!loading && !table && <button onClick={() => { setLoading(true); setError(null); setVersion(value => value + 1); }} className="mt-5 min-h-11 rounded-xl border border-primary px-5 font-semibold text-primary">Thử lại</button>}
     <Link to="/" className="mt-5 block py-3 text-sm font-semibold text-primary">Xem thực đơn</Link>

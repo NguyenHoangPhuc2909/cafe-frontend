@@ -23,3 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 *.md
+
+# Documentation and its archive stay local
+/docs/archive/

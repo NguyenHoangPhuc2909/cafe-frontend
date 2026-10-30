@@ -1,102 +1,119 @@
-import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
-import { useCustomerCart } from '../hooks/useCustomerCart';
-import { useGuestSession } from '../hooks/useGuestSession';
-import { usePreviewOrders } from '../hooks/usePreviewOrders';
-import { createCheckout, restoreCheckout } from '../utils/checkout';
-import type { CheckoutEvent } from '../utils/checkout';
-import { consumePreviewOnce, previewVersion } from '../utils/previewOrders';
-import { changePreview, discardPreview, previewSnapshot, publishPreview, withPreviewLock } from '../services/previewOrders';
-import { CheckoutContext } from './checkout';
-
-const LEGACY_KEY = 'cafe.checkout-preview.v1';
-const ACTIVE_KEY = 'cafe.checkout-active.v1';
-function readLegacy() {
-  try { return restoreCheckout(sessionStorage.getItem(LEGACY_KEY), Date.now()); } catch { return null; }
-}
-function readActive() {
-  try { return sessionStorage.getItem(ACTIVE_KEY) ?? readLegacy()?.code ?? null; } catch { return null; }
-}
+import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import type { GuestOrderResponse } from "../types/guest";
+import { useGuestSession } from "../hooks/useGuestSession";
+import { guestErrorMessage } from "../services/guest";
+import { CheckoutContext } from "./checkout";
 
 export function CheckoutProvider({ children }: { children: ReactNode }) {
-  const cart = useCustomerCart();
-  const { completeSubmittedOrder } = cart;
   const guest = useGuestSession();
-  const orders = usePreviewOrders();
-  const [legacy] = useState(readLegacy);
-  const [activeCode, setActiveCode] = useState(readActive);
-  const active = useRef(activeCode);
+  const { attempt, readOrder } = guest;
+
+  const [latest, setLatest] = useState<GuestOrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const order = orders.find(candidate => candidate.code === activeCode) ?? (legacy?.code === activeCode ? legacy : null);
+  const [version, setVersion] = useState(0);
 
-  const selectOrder = (code: string | null) => {
-    active.current = code;
-    setActiveCode(code);
-    try {
-      if (code) sessionStorage.setItem(ACTIVE_KEY, code);
-      else sessionStorage.removeItem(ACTIVE_KEY);
-    } catch { /* The active pointer can stay in memory until the tab closes. */ }
-  };
+  // Kết quả POST đã được GuestSessionProvider lưu để phục hồi sau reload.
+  const storedOrder =
+    attempt?.state === "success" ? (attempt.order ?? null) : null;
 
-  useEffect(() => {
-    if (!legacy) return;
-    try {
-      if (!previewSnapshot().some(candidate => candidate.code === legacy.code)) publishPreview(legacy);
-      if (active.current === legacy.code) sessionStorage.setItem(ACTIVE_KEY, legacy.code);
-      sessionStorage.removeItem(LEGACY_KEY);
-    } catch { /* Preserve the old receipt if local storage is unavailable. */ }
-  }, [legacy]);
+  const order =
+    storedOrder && latest?.id === storedOrder.id ? latest : storedOrder;
+
+  const orderId = storedOrder?.id;
 
   useEffect(() => {
-    if (order?.paymentStatus !== 'paid') return;
-    void withPreviewLock('consume:' + order.code, () => {
-      consumePreviewOnce(localStorage, order.code, () => completeSubmittedOrder(order.items, order.note));
-    }).catch(() => setError('Chưa thể lưu kết quả cập nhật giỏ. Vui lòng giữ tab này và thử tải lại.'));
-  }, [order, completeSubmittedOrder]);
+    if (orderId === undefined) return;
 
-  const dispatch = (event: CheckoutEvent) => {
-    if (!order) return;
-    // The customer can report payment; only Staff can confirm money or advance preparation.
-    if (!['method', 'confirm', 'retry', 'tick'].includes(event.type)) return;
-    if (event.type === 'confirm' && (!guest.session || guest.isChecking || guest.session.id !== order.sessionId)) {
-      setError('Phiên bàn chưa được xác nhận hoặc đã thay đổi. Vui lòng kiểm tra lại phiên bàn.'); return;
-    }
-    setError(null);
-    void changePreview(order.code, event, previewVersion(order)).catch(cause => {
-      setError(cause instanceof Error ? cause.message : 'Chưa cập nhật được lượt thanh toán.');
-    });
-  };
+    const controller = new AbortController();
+    let active = true;
+    let timer: number | undefined;
 
-  const startCheckout = () => {
+    const load = async () => {
+      try {
+        const next = await readOrder(orderId, controller.signal);
+
+        if (!active) return;
+
+        setLatest(next);
+        setError(null);
+      } catch (cause) {
+        if (active && !controller.signal.aborted) {
+          setError(guestErrorMessage(cause));
+        }
+      } finally {
+        if (active) {
+          timer = window.setTimeout(() => void load(), 5000);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+      controller.abort();
+
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [orderId, readOrder, version]);
+
+  const startCheckout = async (): Promise<boolean> => {
     setError(null);
-    if (guest.attempt) { setError('Vui lòng xử lý kết quả đơn trước đó trong giỏ.'); return false; }
+
     if (order) return true;
-    if (!guest.session || guest.isChecking) { setError('Vui lòng xác nhận phiên bàn trước khi thanh toán.'); return false; }
-    if (cart.isLoading || cart.menuError) { setError('Vui lòng tải lại thực đơn trước khi thanh toán.'); return false; }
-    try {
-      const next = createCheckout(cart.cart, cart.note, guest.session, `DEMO-${crypto.randomUUID().slice(0, 8).toUpperCase()}`, Date.now());
-      if (!publishPreview(next)) throw new Error('Mã đơn thử đã tồn tại. Vui lòng thử lại.');
-      selectOrder(next.code);
-      return true;
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Trình duyệt chưa cho phép lưu dữ liệu thử nghiệm.');
+    if (guest.isSubmitting || guest.isChecking) return false;
+
+    if (guest.attempt) {
+      setError("Vui lòng xử lý kết quả đơn trước đó trong giỏ.");
       return false;
     }
+
+    if (!guest.session) {
+      setError("Vui lòng xác nhận phiên bàn trước khi gửi đơn.");
+      return false;
+    }
+
+    const created = await guest.submitOrder();
+
+    if (!created) return false;
+
+    setLatest(created);
+    return true;
   };
 
-  const returnToCart = async () => {
+  const refreshOrder = () => {
+    setVersion((current) => current + 1);
+  };
+
+  const startNewOrder = (): boolean => {
     if (!order) return true;
-    try {
-      if (!await discardPreview(order.code)) { setError('Đơn đã chuyển trạng thái. Vui lòng kiểm tra trước khi sửa giỏ.'); return false; }
-      selectOrder(null); setError(null); return true;
-    } catch { setError('Chưa thể lưu thay đổi. Vui lòng thử lại.'); return false; }
+
+    if (order.paymentStatus !== "PAID" && order.status !== "EXPIRED") {
+      setError("Đơn hiện tại vẫn đang chờ thanh toán.");
+      return false;
+    }
+
+    // Chỉ bỏ lựa chọn trên FE, không sửa hoặc xóa đơn trong BE.
+    guest.dismissAttempt();
+    setLatest(null);
+    setError(null);
+    return true;
   };
 
-  const finishOrder = () => {
-    if (order?.preparationStatus !== 'served') return;
-    // Keep the completed order in Staff history; only clear this customer's active pointer.
-    selectOrder(null); setError(null);
-  };
-
-  return <CheckoutContext.Provider value={{ order, startCheckout, dispatch, returnToCart, finishOrder, error }}>{children}</CheckoutContext.Provider>;
+  return (
+    <CheckoutContext.Provider
+      value={{
+        order,
+        startCheckout,
+        refreshOrder,
+        startNewOrder,
+        error: error ?? guest.orderError,
+      }}
+    >
+      {children}
+    </CheckoutContext.Provider>
+  );
 }

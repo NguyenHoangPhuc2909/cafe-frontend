@@ -1,12 +1,11 @@
-import { createContext } from 'react';
-import type { CheckoutEvent, CheckoutOrder } from '../utils/checkout';
+import { createContext } from "react";
+import type { GuestOrderResponse } from "../types/guest";
 
 export interface CheckoutValue {
-  order: CheckoutOrder | null;
-  startCheckout: () => boolean;
-  dispatch: (event: CheckoutEvent) => void;
-  returnToCart: () => Promise<boolean>;
-  finishOrder: () => void;
+  order: GuestOrderResponse | null;
+  startCheckout: () => Promise<boolean>;
+  refreshOrder: () => void;
+  startNewOrder: () => boolean;
   error: string | null;
 }
 
