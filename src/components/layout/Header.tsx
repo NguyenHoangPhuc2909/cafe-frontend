@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-
-const CART_COUNT = 3; // TODO: replace with CartContext
+import { useCustomerCart } from '../../hooks/useCustomerCart';
 
 const Header: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const { itemCount } = useCustomerCart();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -18,16 +18,12 @@ const Header: React.FC = () => {
   return (
     <>
       {/* ── Top Utility Bar ─────────────────────────────── */}
-      <div className="bg-primary text-on-primary hidden md:flex items-center justify-between px-margin py-2 text-[11px] font-label-sm tracking-wide animate-slide-down">
+      <div className="bg-primary text-on-primary hidden xl:flex items-center justify-between px-8 py-2 text-[11px] font-label-sm tracking-wide animate-slide-down">
         <span className="opacity-70 flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-          Chào mừng đến L'Atelier Café — Specialty Roastery Hà Nội
+          Chào mừng đến L'Atelier Café — Specialty Roastery
         </span>
         <div className="flex items-center gap-5">
-          <div className="flex items-center gap-1.5 opacity-80 hover:opacity-100 transition-opacity cursor-pointer">
-            <span className="material-symbols-outlined text-[14px]">store</span>
-            <span>48 Tràng Tiền, Hoàn Kiếm</span>
-          </div>
           <div className="flex items-center gap-1.5 opacity-80">
             <span className="material-symbols-outlined text-[14px]">call</span>
             <strong>1900 8868</strong>
@@ -41,7 +37,7 @@ const Header: React.FC = () => {
 
       {/* ── Main Header ─────────────────────────────────── */}
       <header
-        className={`sticky top-0 z-40 transition-all duration-300 px-margin h-16 md:h-[72px] flex items-center justify-between
+        className={`sticky top-0 z-40 transition-all duration-300 px-4 sm:px-6 lg:px-8 h-16 md:h-[72px] flex items-center justify-between gap-3
           ${scrolled
             ? 'bg-surface/95 backdrop-blur-xl shadow-[0_4px_24px_-4px_rgba(49,25,8,0.12)] border-b border-outline-variant/30'
             : 'bg-surface border-b border-surface-container-high'
@@ -69,13 +65,6 @@ const Header: React.FC = () => {
 
         {/* Actions */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Table badge — desktop */}
-          <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-low rounded-xl border border-outline-variant/40 cursor-pointer hover:bg-surface-container hover:border-outline-variant transition-all group">
-            <span className="material-symbols-outlined text-secondary text-[17px]" style={{ fontVariationSettings: "'FILL' 1" }}>table_restaurant</span>
-            <span className="font-label-md text-[12px] text-primary font-semibold group-hover:text-secondary transition-colors">Bàn 06</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse-dot ml-0.5"></span>
-          </div>
-
           {/* Cart button */}
           <Link
             to="/cart"
@@ -87,72 +76,26 @@ const Header: React.FC = () => {
           >
             <span className="material-symbols-outlined text-[20px]" style={{ fontVariationSettings: "'FILL' 1" }}>shopping_bag</span>
             <span>Giỏ hàng</span>
-            {CART_COUNT > 0 && (
+            {itemCount > 0 && (
               <span className="animate-badge-pop bg-secondary-container text-on-secondary-container text-[10px] font-label-sm font-bold px-2 py-0.5 rounded-full ml-0.5">
-                {CART_COUNT}
+                {itemCount}
               </span>
             )}
           </Link>
 
-          {/* Avatar */}
-          <button className="hidden md:flex w-9 h-9 md:w-10 md:h-10 rounded-xl items-center justify-center border border-outline-variant/50 bg-surface-container-low hover:bg-surface-container hover:border-outline-variant text-primary transition-all active:scale-90 focus-ring">
-            <span className="material-symbols-outlined text-[20px]">person</span>
-          </button>
+          <Link to="/" className="hidden md:flex min-h-11 items-center px-3 text-[13px] font-label-md text-primary focus-ring">Thực đơn</Link>
+          {isActive('/cart') ? (
+            <Link to="/" className="flex min-h-11 items-center gap-1 rounded-xl px-2 text-xs font-semibold text-primary md:hidden"><span aria-hidden="true" className="material-symbols-outlined text-lg">restaurant_menu</span>Thực đơn</Link>
+          ) : (
+            <Link to="/cart" aria-label={`Giỏ hàng, ${itemCount} món`} className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-outline-variant/40 text-primary md:hidden">
+              <span aria-hidden="true" className="material-symbols-outlined text-xl">shopping_bag</span>
+              {itemCount > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-primary px-1 text-center text-[10px] font-bold leading-5 text-on-primary">{itemCount}</span>}
+            </Link>
+          )}
         </div>
       </header>
 
-      {/* ── Mobile Bottom Navigation ─────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass-warm border-t border-outline-variant/25 shadow-[0_-8px_32px_-4px_rgba(49,25,8,0.1)]">
-        <div className="flex items-center justify-around h-16 px-2">
 
-          {/* Home */}
-          <Link
-            to="/"
-            className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 rounded-xl mx-0.5 transition-colors active:scale-90
-              ${isActive('/') ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
-          >
-            <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: isActive('/') ? "'FILL' 1" : "'FILL' 0" }}>home</span>
-            <span className={`text-[10px] font-label-sm font-medium ${isActive('/') ? 'font-bold' : ''}`}>Trang chủ</span>
-          </Link>
-
-          {/* Menu */}
-          <Link
-            to="/"
-            className="flex flex-col items-center justify-center flex-1 h-full gap-0.5 rounded-xl mx-0.5 text-on-surface-variant hover:text-primary transition-colors active:scale-90"
-          >
-            <span className="material-symbols-outlined text-[22px]">restaurant_menu</span>
-            <span className="text-[10px] font-label-sm font-medium">Menu</span>
-          </Link>
-
-          {/* Cart — center elevated */}
-          <Link
-            to="/cart"
-            className={`flex flex-col items-center justify-center flex-1 h-full relative gap-0.5 rounded-xl mx-0.5 transition-all active:scale-90
-              ${isActive('/cart') ? 'text-primary' : 'text-on-surface-variant hover:text-primary'}`}
-          >
-            <div className="relative">
-              <span
-                className="material-symbols-outlined text-[24px]"
-                style={{ fontVariationSettings: isActive('/cart') ? "'FILL' 1" : "'FILL' 0" }}
-              >
-                shopping_bag
-              </span>
-              {CART_COUNT > 0 && (
-                <span className="animate-badge-pop absolute -top-1.5 -right-2 bg-error text-white text-[9px] font-bold w-4.5 h-4.5 flex items-center justify-center rounded-full leading-none px-1">
-                  {CART_COUNT}
-                </span>
-              )}
-            </div>
-            <span className={`text-[10px] font-label-sm font-medium ${isActive('/cart') ? 'font-bold' : ''}`}>Giỏ hàng</span>
-          </Link>
-
-          {/* Account */}
-          <button className="flex flex-col items-center justify-center flex-1 h-full gap-0.5 rounded-xl mx-0.5 text-on-surface-variant hover:text-primary transition-colors active:scale-90">
-            <span className="material-symbols-outlined text-[22px]">person</span>
-            <span className="text-[10px] font-label-sm font-medium">Tài khoản</span>
-          </button>
-        </div>
-      </nav>
     </>
   );
 };

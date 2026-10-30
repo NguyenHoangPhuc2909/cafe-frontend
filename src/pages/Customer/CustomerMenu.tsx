@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import ProductCard from '../../components/common/ProductCard';
+import BaseProductCard from '../../components/common/BaseProductCard';
 import type { Product } from '../../types/product';
-import ProductModal from '../../components/common/ProductModal';
+import BaseProductModal from '../../components/common/BaseProductModal';
+import { Link } from 'react-router-dom';
+import { useCustomerCart } from '../../hooks/useCustomerCart';
 
 import {
-  MOCK_PRODUCTS,
-  CATEGORY_MAP,
-  CATEGORIES,
   SORT_LABELS,
   SORT_CYCLE,
   type SortMode
-} from '../../constants/mockData';
+} from '../../constants/menu';
 
 const CustomerMenu: React.FC = () => {
+  const { products, isLoading, menuError, reloadMenu, addItem, addItemWithOptions } = useCustomerCart();
+  const [notice, setNotice] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('Tất cả');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery]         = useState('');
@@ -20,18 +21,14 @@ const CustomerMenu: React.FC = () => {
   const searchRef = React.useRef<HTMLInputElement>(null);
 
   const getCategoryCount = (label: string) => {
-    const kw = CATEGORY_MAP[label] ?? '';
-    if (!kw) return MOCK_PRODUCTS.length;
-    return MOCK_PRODUCTS.filter(p => p.category.toLowerCase().includes(kw)).length;
+    return label === 'Tất cả' ? products.length : products.filter(p => p.category === label).length;
   };
 
   // ── Filter by category
-  const keyword = CATEGORY_MAP[activeCategory] ?? '';
-  const byCategory = keyword === ''
-    ? MOCK_PRODUCTS
-    : MOCK_PRODUCTS.filter(p =>
-        p.category.toLowerCase().includes(keyword)
-      );
+  const categories = ['Tất cả', ...new Set(products.map(p => p.category))]
+    .map(label => ({ label, icon: label === 'Tất cả' ? 'restaurant_menu' : 'local_cafe' }));
+  const byCategory = activeCategory === 'Tất cả'
+    ? products : products.filter(p => p.category === activeCategory);
 
   // ── Filter by search query
   const bySearch = searchQuery.trim() === ''
@@ -57,10 +54,10 @@ const CustomerMenu: React.FC = () => {
   return (
     <>
       {/* ── Sticky Category + Search Bar ─────────────────── */}
-      <div className="bg-surface/90 glass-warm border-b border-outline-variant/25 sticky top-[72px] z-30 -mx-margin md:-mx-space-xl px-margin md:px-space-xl py-3 mb-8 animate-slide-down space-y-2.5">
+      <div className="bg-surface/90 glass-warm border-b border-outline-variant/25 sticky top-16 md:top-[72px] z-30 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 mb-5 md:mb-8 animate-slide-down space-y-2.5">
         {/* Category pills */}
         <div className="max-w-7xl mx-auto flex items-center gap-2.5 overflow-x-auto pb-0.5 custom-scroll">
-          {CATEGORIES.map((cat, i) => {
+          {categories.map((cat, i) => {
             const active = activeCategory === cat.label;
             return (
               <button
@@ -98,16 +95,17 @@ const CustomerMenu: React.FC = () => {
               ref={searchRef}
               id="menu-search"
               type="text"
+              aria-label="Tìm món trong thực đơn"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Tìm tên món, mô tả, nguồn gốc…"
-              className="w-full pl-10 pr-20 py-2.5 bg-surface-container-lowest border border-outline-variant/40 rounded-xl text-[13px] font-body-md text-on-surface placeholder:text-outline focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
+              placeholder="Tìm tên món, mô tả…"
+              className="w-full pl-10 pr-24 py-2.5 bg-surface-container-lowest border border-outline-variant/40 rounded-xl text-base sm:text-[13px] font-body-md text-on-surface placeholder:text-outline focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
             />
             {/* Clear button */}
             {searchQuery && (
               <button
                 onClick={() => { setSearchQuery(''); searchRef.current?.focus(); }}
-                className="absolute right-11 p-1 rounded-lg text-outline hover:text-error transition-colors"
+                className="absolute right-11 flex h-11 w-11 items-center justify-center rounded-lg text-outline hover:text-error transition-colors"
                 title="Xoá tìm kiếm"
               >
                 <span className="material-symbols-outlined text-[17px]">close</span>
@@ -117,7 +115,7 @@ const CustomerMenu: React.FC = () => {
             <button
               onClick={cycleSort}
               title={`Sắp xếp: ${SORT_LABELS[sortMode]}`}
-              className={`absolute right-2.5 p-1.5 rounded-xl transition-all ${
+              className={`absolute right-0 flex h-11 w-11 items-center justify-center rounded-xl transition-all ${
                 sortMode !== 'default'
                   ? 'text-primary bg-primary/10'
                   : 'text-outline hover:text-primary hover:bg-surface-container'
@@ -139,68 +137,28 @@ const CustomerMenu: React.FC = () => {
         </div>
       </div>
 
-      <div className="space-y-10">
-        {/* ── Hero Feature Banner ─────────────────────────── */}
-        <div className="relative overflow-hidden rounded-2xl noise-overlay animate-fade-up">
-          {/* Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#2a1508] via-[#3d2312] to-[#1a0c04]" />
-          {/* Decorative circle */}
-          <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-secondary/10 blur-3xl pointer-events-none" />
-          <div className="absolute -left-8 -bottom-8 w-48 h-48 rounded-full bg-primary-fixed/5 blur-2xl pointer-events-none" />
-
-          <div className="relative z-10 p-7 md:p-9 flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12">
-            {/* Image — luôn bên phải trên desktop, trên cùng trên mobile */}
-            <div className="relative w-56 h-56 md:w-64 md:h-64 shrink-0 animate-float">
-              <div className="absolute inset-0 rounded-2xl bg-secondary/20 blur-2xl scale-90" />
-              <img
-                className="relative z-10 w-full h-full object-cover rounded-2xl border border-white/15 shadow-2xl"
-                alt="Cà Phê Trứng"
-                src="/images/ca_phe_trung.png"
-              />
-              <div className="absolute -bottom-2 -right-2 z-20 bg-white text-primary text-[10px] font-label-sm font-bold px-2.5 py-1.5 rounded-xl border border-surface-container shadow-md">
-                100% Robusta Fine
-              </div>
-            </div>
-
-            {/* Text */}
-            <div className="flex-1 space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 text-[11px] font-label-md text-tertiary-fixed tracking-wide">
-                <span className="material-symbols-outlined text-[14px] text-tertiary-fixed" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                Món Tinh Hoa Trong Ngày
-              </div>
-
-              <h2 className="font-headline-lg text-[26px] md:text-[30px] font-bold text-white leading-tight">
-                Cà Phê Trứng<br />
-                <span className="shimmer-text">Hoàng Kim Hà Nội</span>
-              </h2>
-
-              <p className="font-body-md text-white/70 text-[13.5px] leading-relaxed line-clamp-3">
-                Lớp kem trứng thơm ngậy đánh bông thủ công phủ trên nền espresso Robusta Lâm Đồng ủ lạnh đậm đà và hạt hạnh nhân nướng giòn.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 pt-1">
-                <div className="text-[28px] font-bold font-headline-md text-tertiary-fixed">
-                  65.000₫
-                </div>
-                <button className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-primary font-label-lg font-bold hover:bg-primary-fixed transition-all active:scale-95 shadow-lg">
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                  Thêm vào đơn
-                </button>
-                <button className="inline-flex items-center gap-1.5 text-white/60 hover:text-white text-[12px] font-label-sm transition-colors">
-                  <span className="material-symbols-outlined text-[16px]">info</span>
-                  Chi tiết
-                </button>
-              </div>
-            </div>
+      {menuError && <div role="alert" className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-error/20 bg-error-container/30 p-4 text-sm text-on-surface">
+        <p>{menuError}</p>
+        <button onClick={reloadMenu} disabled={isLoading} className="min-h-11 rounded-xl border border-primary px-4 font-semibold text-primary disabled:opacity-50">{isLoading ? 'Đang tải…' : 'Thử lại'}</button>
+      </div>}
+      <p role="status" aria-live="polite" className="sr-only">{notice}</p>
+      {notice && <div className="mb-4 flex items-center justify-between gap-3 rounded-xl bg-secondary-fixed/50 px-4 py-3 text-sm text-primary"><span>{notice}</span><Link className="shrink-0 font-semibold underline underline-offset-4" to="/cart">Xem giỏ</Link></div>}
+      <div className="space-y-7 md:space-y-10">
+        <section aria-label="Lời chào từ quán" className="flex items-center justify-between gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-[#2a1508] to-[#4a2e1b] p-4 text-on-primary sm:p-6">
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-primary-fixed-dim sm:text-xs">Một chút thư thả tại quán</p>
+            <h1 className="font-headline-lg text-xl font-bold leading-tight sm:text-2xl">Hôm nay bạn muốn uống gì?</h1>
+            <p className="mt-2 text-xs leading-relaxed text-white/75 sm:text-sm">Chọn món yêu thích, thêm vào giỏ và để quán lo phần còn lại.</p>
           </div>
-        </div>
+          <img src="/images/ca_phe_trung.png" alt="" className="hidden h-24 w-24 shrink-0 rounded-xl object-cover sm:block" />
+        </section>
 
         {/* ── Section Header ──────────────────────────────── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 animate-fade-up delay-150">
+        <div id="customer-menu" className="scroll-mt-52 flex flex-col md:flex-row md:items-center justify-between gap-3 animate-fade-up delay-150">
           <div>
-            <h3 className="font-headline-md text-[20px] text-primary font-bold">Thực Đơn Đồ Uống &amp; Tráng Miệng</h3>
+            <h3 className="font-headline-md text-[20px] text-primary font-bold">Thực đơn hôm nay</h3>
             <p className="font-body-sm text-[12px] text-on-surface-variant mt-0.5">
-              Pha chế tươi thủ công khi nhận order — giữ trọn hương vị nguyên bản
+              {products.length} món đang phục vụ · Chọn món để xem chi tiết
             </p>
           </div>
           <span className="self-start md:self-auto font-label-md text-[12px] text-on-surface-variant">
@@ -209,7 +167,11 @@ const CustomerMenu: React.FC = () => {
         </div>
 
         {/* ── Product Grid ────────────────────────────────── */}
-        {filteredProducts.length === 0 ? (
+        {isLoading && products.length === 0 ? (
+          <div aria-label="Đang tải thực đơn" role="status" className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
+            {Array.from({ length: 8 }, (_, i) => <div key={i} className="h-64 animate-pulse rounded-2xl bg-surface-container" />)}
+          </div>
+        ) : menuError && products.length === 0 ? null : filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-3 animate-fade-up">
             <span className="material-symbols-outlined text-[48px] text-outline">search_off</span>
             <p className="font-headline-sm text-primary font-semibold">Không tìm thấy món nào</p>
@@ -225,10 +187,11 @@ const CustomerMenu: React.FC = () => {
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
             {filteredProducts.map((product, i) => (
               <div key={product.id} className="animate-fade-up" style={{ animationDelay: `${i * 60}ms` }}>
-                <ProductCard
+                <BaseProductCard
                   product={product}
-                  onClick={(p) => setSelectedProduct(p)}
-                  onAddToCart={() => alert(`Đã thêm ${product.name}`)}
+                  variant="customer"
+                  onCardClick={(p) => setSelectedProduct(p)}
+                  onActionPrimary={(p) => { addItem(p); setNotice(`Đã thêm ${p.name} vào giỏ.`); }}
                 />
               </div>
             ))}
@@ -242,24 +205,23 @@ const CustomerMenu: React.FC = () => {
               <span className="material-symbols-outlined text-[22px]" style={{ fontVariationSettings: "'FILL' 1" }}>tune</span>
             </div>
             <div>
-              <p className="font-label-lg text-primary font-bold">Tùy biến độ ngọt, lượng đá &amp; loại sữa hạt</p>
+              <p className="font-label-lg text-primary font-bold">Chọn món theo nhịp của bạn</p>
               <p className="font-body-sm text-on-surface-variant mt-0.5 text-[12.5px]">
-                Bấm trực tiếp vào từng món trong giỏ để tinh chỉnh công thức theo khẩu vị riêng.
+                Xem lại món và điều chỉnh số lượng trong giỏ trước khi đặt.
               </p>
             </div>
           </div>
-          <button className="shrink-0 w-full md:w-auto px-5 py-2.5 rounded-xl border-2 border-primary-container text-primary font-label-md hover:bg-primary hover:text-on-primary hover:border-primary transition-all text-[13px]">
-            Tìm hiểu thêm
-          </button>
+          <Link to="/cart" className="shrink-0 min-h-11 text-center w-full md:w-auto px-5 py-2.5 rounded-xl border-2 border-primary-container text-primary font-label-md hover:bg-primary hover:text-on-primary hover:border-primary transition-all text-[13px]">Xem giỏ hàng</Link>
         </div>
       </div>
 
       {/* Product Modal */}
-      <ProductModal
+      <BaseProductModal
         isOpen={selectedProduct !== null}
         product={selectedProduct}
+        variant="customer"
         onClose={() => setSelectedProduct(null)}
-        onAddToCart={(p) => alert(`Đã thêm ${p.name} từ Modal!`)}
+        onConfirm={(p, _options, qty) => { addItemWithOptions(p, '', qty); setNotice(`Đã thêm ${qty} ${p.name} vào giỏ.`); }}
       />
     </>
   );
