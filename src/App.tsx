@@ -14,7 +14,6 @@ import POSPage from "./pages/Staff/POSPage";
 import CheckoutPage from "./pages/Customer/CheckoutPage";
 import StaffOrdersPage from "./pages/Staff/StaffOrdersPage";
 import StaffTablesPage from "./pages/Staff/StaffTablesPage";
-import OrderHistoryPage from "./pages/Staff/OrderHistoryPage";
 import { StaffAuthProvider } from "./contexts/StaffAuthProvider";
 import StaffLoginPage from "./pages/Staff/StaffLoginPage";
 import RequireStaffAuth from "./components/staff/RequireStaffAuth";
@@ -55,10 +54,13 @@ function App() {
               <Route path="orders" element={<StaffOrdersPage key="orders" />} />
               <Route
                 path="kds"
-                element={<StaffOrdersPage key="kds" kitchen />}
+                element={<StaffOrdersPage key="kds" mode="kitchen" />}
+              />
+              <Route
+                path="history"
+                element={<StaffOrdersPage key="history" mode="history" />}
               />
               <Route path="tables" element={<StaffTablesPage />} />
-              <Route path="history" element={<OrderHistoryPage />} />
               <Route
                 path="inventory"
                 element={

@@ -1,3 +1,5 @@
+import type { OrderResponse } from "./order";
+
 export interface CafeTableResponse {
   id: number;
   name: string;
@@ -27,17 +29,11 @@ export interface GuestOrderRequest {
   note: string;
 }
 
-export interface GuestOrderResponse {
-  id: number;
+export interface GuestOrderResponse extends OrderResponse {
   sessionId: number;
   tableId: number;
   tableName: string;
-  totalAmount: number;
-  status: string;
-  paymentStatus: string;
   paymentExpiresAt: string;
-  createdAt: string;
-  items: { id: number; productName: string; quantity: number; price: number; toppingNames: string[] | null }[];
 }
 
 export interface OrderAttempt {

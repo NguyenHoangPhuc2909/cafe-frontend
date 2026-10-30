@@ -14,3 +14,12 @@ export interface ProductResponse {
   categoryId: number | null;
   categoryName: string | null;
 }
+
+export interface PageResponse<T> {
+  content: T[],
+  page: number,
+  size: number,
+  totalElements: number,
+  totalPages: number,
+  last: boolean;
+}

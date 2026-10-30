@@ -1,4 +1,5 @@
 import type { CafeTableResponse, TableSessionResponse } from './guest';
+import type { OrderPaymentStatus } from './order';
 
 export interface StaffSession {
   accessToken: string;
@@ -13,3 +14,11 @@ export interface StaffTableOverview {
 }
 
 export type StaffTableFilter = 'all' | 'open' | 'idle' | 'inactive' | 'unknown';
+
+export interface StaffOrderQuery {
+  status?: 'PENDING' | 'EXPIRED';
+  paymentStatus?: OrderPaymentStatus;
+  sessionId?: number;
+  page?: number;
+  size?: number;
+}
