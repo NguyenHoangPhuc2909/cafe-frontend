@@ -26,7 +26,8 @@ function failure(url: string, token: string, status = 401) {
 
 test('only a current-token Staff auth failure requests logout', () => {
   assert.equal(isCurrentStaffAuthFailure(failure('/staff/tables', 'current'), 'current'), true);
-  assert.equal(isCurrentStaffAuthFailure(failure('/staff/tables/3/sessions', 'current', 403), 'current'), true);
+  assert.equal(isCurrentStaffAuthFailure(failure('/staff/tables/3/sessions', 'current', 403), 'current'), false);
+  assert.equal(isCurrentStaffAuthFailure(failure('/staff/orders/12/complete', 'current', 403),'current',),false);
   assert.equal(isCurrentStaffAuthFailure(failure('/staff/tables', 'old'), 'current'), false);
   assert.equal(isCurrentStaffAuthFailure(failure('/auth/login', 'current'), 'current'), false);
   assert.equal(isCurrentStaffAuthFailure(failure('/products', 'current', 403), 'current'), false);

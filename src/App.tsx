@@ -17,6 +17,7 @@ import StaffTablesPage from "./pages/Staff/StaffTablesPage";
 import { StaffAuthProvider } from "./contexts/StaffAuthProvider";
 import StaffLoginPage from "./pages/Staff/StaffLoginPage";
 import RequireStaffAuth from "./components/staff/RequireStaffAuth";
+import RequireOrderStaff from "./components/staff/RequireOrderStaff";
 
 function App() {
   return (
@@ -50,7 +51,9 @@ function App() {
           <Route element={<RequireStaffAuth />}>
             <Route path="/staff" element={<StaffLayout />}>
               <Route index element={<Navigate to="orders" replace />} />
-              <Route path="pos" element={<POSPage />} />
+              <Route element={<RequireOrderStaff />}>
+                <Route path="pos" element={<POSPage />} />
+              </Route>
               <Route path="orders" element={<StaffOrdersPage key="orders" />} />
               <Route
                 path="kds"

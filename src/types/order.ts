@@ -1,5 +1,7 @@
 export type OrderPaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED';
 
+export type OrderStatus = 'PENDING' | 'PREPARING'  | 'COMPLETED' | 'EXPIRED';
+
 export interface OrderItemResponse {
   id: number;
   productName: string;
@@ -14,7 +16,7 @@ export interface OrderResponse {
   tableId: number | null;
   tableName: string | null;
   totalAmount: number;
-  status: string;
+  status: OrderStatus;
   paymentStatus: OrderPaymentStatus;
   paymentExpiresAt: string | null;
   createdAt: string;

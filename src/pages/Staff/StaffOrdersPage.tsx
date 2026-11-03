@@ -7,6 +7,7 @@ import type { StaffOrderQuery } from "../../types/staffApi";
 import StaffPaymentPanel from "../../components/staff/StaffPaymentPanel";
 import { formatCurrency } from "../../utils/format";
 import CheckoutSummary from "../../components/common/CheckoutSummary";
+import CompleteOrderButton from "../../components/staff/CompleteOrderButton";
 
 type Filter = "all" | "unpaid" | "paid" | "expired";
 type ViewMode = "orders" | "kitchen" | "history";
@@ -16,6 +17,19 @@ function paymentLabel(order: OrderResponse) {
   if (order.paymentStatus === "PAID") return "Đã thanh toán";
   if (order.paymentStatus === "REFUNDED") return "Đã hoàn tiền";
   return "Chưa thanh toán";
+}
+
+function orderStatusLabel(order: OrderResponse) {
+  switch (order.status) {
+    case "PENDING":
+      return "Chờ thanh toán";
+    case "PREPARING":
+      return "Đang làm";
+    case "COMPLETED":
+      return "Đã hoàn thành";
+    case "EXPIRED":
+      return "Hết hạn";
+  }
 }
 
 export default function StaffOrdersPage({
@@ -63,7 +77,10 @@ export default function StaffOrdersPage({
     query.status = "EXPIRED";
   }
 
-  if (kitchen) query.status = "PENDING";
+  if (kitchen) {
+    query.status = "PREPARING";
+    query.paymentStatus = "PAID";
+  }
 
   const { data, isLoading, error, reload } = useStaffOrders(session, query);
   const paymentChanged = (message: string, success: boolean) => {
@@ -106,7 +123,7 @@ export default function StaffOrdersPage({
             {history
               ? "Lịch sử đơn hàng"
               : kitchen
-                ? "Đơn chờ chuẩn bị"
+                ? "Đơn đang làm"
                 : "Quản lý đơn hàng"}
           </h1>
 
@@ -114,7 +131,7 @@ export default function StaffOrdersPage({
             to={mode === "orders" ? "/staff/kds" : "/staff/orders"}
             className="min-h-11 content-center font-semibold text-primary underline"
           >
-            {mode === "orders" ? "Xem đơn đã nhận tiền" : "Về quản lý đơn"}
+            {mode === "orders" ? "Xem đơn đang làm" : "Về quản lý đơn"}
           </Link>
         </div>
 
@@ -203,7 +220,12 @@ export default function StaffOrdersPage({
               >
                 <div className="flex flex-wrap justify-between gap-2">
                   <strong>Đơn #{order.id}</strong>
-                  <span className="text-sm">{paymentLabel(order)}</span>
+                  <div className="text-right text-sm">
+                    <p className="font-semibold">{orderStatusLabel(order)}</p>
+                    <p className="text-on-surface-variant">
+                      {paymentLabel(order)}
+                    </p>
+                  </div>
                 </div>
 
                 <p className="mt-2 text-sm text-secondary">
@@ -263,6 +285,13 @@ export default function StaffOrdersPage({
               <p className="rounded-2xl bg-surface p-6 text-sm">
                 Chọn một đơn để xem chi tiết.
               </p>
+            )}
+            {kitchen && selected && (
+              <CompleteOrderButton
+                key={selected.id}
+                order={selected}
+                onChanged={paymentChanged}
+              />
             )}
           </aside>
         </div>

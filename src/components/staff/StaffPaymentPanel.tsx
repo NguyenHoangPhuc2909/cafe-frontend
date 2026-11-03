@@ -35,6 +35,7 @@ export default function StaffPaymentPanel({ order, onChanged }: Props) {
     (confirmed && order.paymentStatus === "UNPAID");
 
   const payable =
+    session?.role === "STAFF" &&
     !paid &&
     order.status === "PENDING" &&
     order.paymentStatus === "UNPAID" &&
@@ -94,6 +95,10 @@ export default function StaffPaymentPanel({ order, onChanged }: Props) {
       setAcknowledged(false);
     }
   };
+
+  if (session?.role !== "STAFF") {
+    return <CheckoutSummary order={order} />;
+  }
 
   return (
     <div className="space-y-4">

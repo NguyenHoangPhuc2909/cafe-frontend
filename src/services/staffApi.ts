@@ -47,11 +47,13 @@ export function isStaffAccessError(error: unknown) {
 
 export function isCurrentStaffAuthFailure(error: unknown, token: string) {
   if (
-    !isStaffAccessError(error) ||
     !axios.isAxiosError(error) ||
+    error.response?.status !== 401 ||
     !error.config?.url?.startsWith("/staff/")
-  )
+  ) {
     return false;
+  }
+
   return (
     axios.AxiosHeaders.from(error.config.headers).get("Authorization") ===
     `Bearer ${token}`
@@ -62,8 +64,14 @@ export function staffErrorMessage(error: unknown) {
   if (axios.isAxiosError(error)) {
     const message: unknown = error.response?.data?.message;
     if (typeof message === "string" && message.length < 500) return message;
-    if (isStaffAccessError(error))
-      return "Phiên đăng nhập đã hết hạn hoặc tài khoản không có quyền. Vui lòng đăng nhập lại.";
+    if (error.response?.status === 401) {
+      return "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
+    }
+
+    if (error.response?.status === 403) {
+      return "Bạn không có quyền thực hiện thao tác này.";
+    }
+    
     return "Chưa kết nối được BE. Vui lòng thử lại.";
   }
   return error instanceof Error
@@ -253,4 +261,33 @@ export async function confirmStaffPayment(
   }
 
   return payment;
+}
+
+export async function completeStaffOrder(
+  token: string,
+  orderId: number,
+): Promise<OrderResponse> {
+  if (!Number.isSafeInteger(orderId) || orderId <= 0) {
+    throw new Error("Mã đơn hàng không hợp lệ.");
+  }
+
+  const { data } = await http.patch<ApiResponse<OrderResponse>>(
+    `/staff/orders/${orderId}/complete`,
+    undefined,
+    { headers: headers(token) },
+  );
+
+  const order = unwrap(data);
+
+  if (
+    order.id !== orderId ||
+    order.status !== "COMPLETED" ||
+    order.paymentStatus !== "PAID"
+  ) {
+    throw new Error(
+      "Chưa xác nhận được kết quả hoàn thành. Vui lòng tải lại đơn.",
+    );
+  }
+
+  return order;
 }
