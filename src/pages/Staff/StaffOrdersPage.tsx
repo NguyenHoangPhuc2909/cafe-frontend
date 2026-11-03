@@ -1,4 +1,9 @@
-import { useState } from "react";
+import { Drawer, Grid } from 'antd';
+import SelectField from '../../components/ui/SelectField';
+import Pagination from '../../components/ui/Pagination';
+import Icon from '../../components/ui/Icon';
+import { OrderListSkeleton, OrderDetailSkeleton } from "../../components/ui/Skeleton";
+import { useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useStaffAuth } from "../../hooks/useStaffAuth";
 import { useStaffOrders } from "../../hooks/useStaffOrders";
@@ -37,10 +42,14 @@ export default function StaffOrdersPage({
 }: {
   mode?: ViewMode;
 }) {
+  const screens = Grid.useBreakpoint();
+  const desktop = !!screens.lg;
+  const [detailOpen, setDetailOpen] = useState(false);
   const kitchen = mode === "kitchen";
   const history = mode === "history";
   const { session } = useStaffAuth();
   const [params, setParams] = useSearchParams();
+  const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{
     message: string;
@@ -82,7 +91,7 @@ export default function StaffOrdersPage({
     query.paymentStatus = "PAID";
   }
 
-  const { data, isLoading, error, reload } = useStaffOrders(session, query);
+  const { data, pagination, isLoading, error, reload } = useStaffOrders(session, query);
   const paymentChanged = (message: string, success: boolean) => {
     setNotice({ message, success });
     reload();
@@ -98,6 +107,7 @@ export default function StaffOrdersPage({
     next.delete("page");
     setSelectedId(null);
     setParams(next);
+    scrollRef.current?.scrollTo({ top: 0 });
   };
 
   const changePage = (value: number) => {
@@ -105,6 +115,7 @@ export default function StaffOrdersPage({
     next.set("page", String(value));
     setSelectedId(null);
     setParams(next);
+    scrollRef.current?.scrollTo({ top: 0 });
   };
 
   const clearSession = () => {
@@ -113,189 +124,69 @@ export default function StaffOrdersPage({
     next.delete("page");
     setSelectedId(null);
     setParams(next);
+    scrollRef.current?.scrollTo({ top: 0 });
   };
 
-  return (
-    <div className="h-full overflow-y-auto bg-[#F6F2EE] p-4 sm:p-6">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <h1 className="text-2xl font-bold text-primary">
-            {history
-              ? "Lịch sử đơn hàng"
-              : kitchen
-                ? "Đơn đang làm"
-                : "Quản lý đơn hàng"}
-          </h1>
+  const title = history ? 'Lịch sử đơn hàng' : kitchen ? 'Đơn đang làm' : 'Quản lý đơn hàng';
+  const description = history ? 'Tra cứu và xem lại các đơn đã nhận.' : kitchen ? 'Theo dõi các đơn đã thanh toán và đang được chuẩn bị.' : 'Theo dõi đơn tại bàn và xác nhận thanh toán.';
+  const emptyDescription = kitchen ? 'Đơn đã thanh toán sẽ xuất hiện ở đây khi được chuyển đến quầy pha chế.' : history ? 'Các đơn hàng của quán sẽ được lưu và hiển thị tại đây.' : 'Đơn khách gửi từ thực đơn tại bàn sẽ xuất hiện tại đây.';
+  const loadingFirstPage = isLoading && !data;
 
-          <Link
-            to={mode === "orders" ? "/staff/kds" : "/staff/orders"}
-            className="min-h-11 content-center font-semibold text-primary underline"
-          >
-            {mode === "orders" ? "Xem đơn đang làm" : "Về quản lý đơn"}
+  return <div className="staff-orders-page">
+    <div ref={scrollRef} className="staff-page-scroll">
+      <div className="staff-page-content">
+        <header className="staff-page-heading">
+          <div><h1>{title}</h1><p>{description}</p></div>
+          <Link to={mode === 'orders' ? '/staff/kds' : '/staff/orders'} className="staff-text-link">
+            <Icon name={mode === 'orders' ? 'coffee' : 'arrow_back'} />
+            {mode === 'orders' ? 'Xem pha chế' : 'Về quản lý đơn'}
           </Link>
+        </header>
+
+        <div className="staff-list-toolbar">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {!kitchen && <SelectField label="Lọc trạng thái đơn" value={filter} onChange={changeFilter} prefix={<Icon name="filter" />} className="w-48 max-w-full"
+              options={[{ value: 'unpaid', label: 'Chờ thanh toán' }, { value: 'paid', label: 'Đã thanh toán' }, { value: 'expired', label: 'Hết hạn' }, { value: 'all', label: 'Tất cả trạng thái' }]} />}
+            {sessionId !== undefined && <button type="button" onClick={clearSession} className="ui-button" aria-label={`Bỏ lọc phiên ${sessionId}`}>Phiên #{sessionId}<Icon name="close" /></button>}
+          </div>
+          <p className="staff-result-count" role="status">{pagination ? `${pagination.totalElements} đơn hàng` : loadingFirstPage ? 'Đang tải đơn hàng…' : ''}</p>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          {!kitchen && (
-            <label className="flex items-center gap-3 text-sm">
-              Trạng thái
-              <select
-                value={filter}
-                onChange={(event) => changeFilter(event.target.value)}
-                className="min-h-11 rounded-xl border border-outline-variant bg-surface px-3"
-              >
-                <option value="unpaid">Chờ thanh toán</option>
-                <option value="paid">Đã thanh toán</option>
-                <option value="expired">Hết hạn</option>
-                <option value="all">Tất cả</option>
-              </select>
-            </label>
-          )}
+        {notice && <p role={notice.success ? 'status' : 'alert'} className={`staff-notice ${notice.success ? 'staff-notice--success' : ''}`}>{notice.message}</p>}
+        {error && <p role="alert" className="staff-notice staff-notice--error">{error}</p>}
 
-          <button
-            type="button"
-            onClick={reload}
-            disabled={isLoading}
-            className="min-h-11 rounded-xl border border-primary px-4 font-semibold text-primary disabled:opacity-40"
-          >
-            {isLoading ? "Đang tải…" : "Tải lại"}
-          </button>
-
-          {sessionId !== undefined && (
-            <button
-              type="button"
-              onClick={clearSession}
-              className="min-h-11 text-sm text-primary underline"
-            >
-              Phiên #{sessionId} · Xem tất cả phiên
-            </button>
-          )}
-        </div>
-
-        {notice && (
-          <p
-            role={notice.success ? "status" : "alert"}
-            className="mt-4 rounded-xl bg-surface-container p-4 text-sm"
-          >
-            {notice.message}
-          </p>
-        )}
-
-        {error && (
-          <p
-            role="alert"
-            className="mt-4 rounded-xl bg-error-container/30 p-4 text-error"
-          >
-            {error}
-          </p>
-        )}
-
-        {data && (
-          <p className="mt-4 text-sm text-on-surface-variant">
-            {data.totalElements} đơn phù hợp
-          </p>
-        )}
-
-        <div className="mt-5 grid items-start gap-5 xl:grid-cols-2">
-          <section aria-label="Danh sách đơn" className="space-y-3">
-            {isLoading && <p role="status">Đang cập nhật danh sách…</p>}
-
-            {!isLoading && !error && orders.length === 0 && (
-              <p className="rounded-2xl bg-surface p-6">
-                Chưa có đơn trong mục này.
-              </p>
-            )}
-
-            {orders.map((order) => (
-              <button
-                type="button"
-                key={order.id}
-                onClick={() => setSelectedId(order.id)}
-                aria-pressed={selected?.id === order.id}
-                className={`w-full rounded-2xl border bg-surface p-4 text-left ${
-                  selected?.id === order.id
-                    ? "border-primary ring-1 ring-primary"
-                    : "border-outline-variant/40"
-                }`}
-              >
-                <div className="flex flex-wrap justify-between gap-2">
-                  <strong>Đơn #{order.id}</strong>
-                  <div className="text-right text-sm">
-                    <p className="font-semibold">{orderStatusLabel(order)}</p>
-                    <p className="text-on-surface-variant">
-                      {paymentLabel(order)}
-                    </p>
-                  </div>
-                </div>
-
-                <p className="mt-2 text-sm text-secondary">
-                  {order.tableName ?? "Không gắn bàn"}
-                </p>
-
-                <p className="mt-2 text-sm text-on-surface-variant">
-                  {order.items
-                    .map((item) => `${item.quantity} × ${item.productName}`)
-                    .join(" · ") || "Chưa có món"}
-                </p>
-
-                <p className="mt-3 font-bold text-primary">
-                  {formatCurrency(order.totalAmount)}
-                </p>
-              </button>
-            ))}
-
-            <nav
-              aria-label="Phân trang"
-              className="flex items-center justify-between gap-3 pt-3"
-            >
-              <button
-                type="button"
-                disabled={page === 0 || isLoading}
-                onClick={() => changePage(page - 1)}
-                className="min-h-11 px-3 font-semibold text-primary disabled:opacity-40"
-              >
-                Trang trước
-              </button>
-
-              <span className="text-sm">Trang {page + 1}</span>
-
-              <button
-                type="button"
-                disabled={!data || data.last || isLoading}
-                onClick={() => changePage(page + 1)}
-                className="min-h-11 px-3 font-semibold text-primary disabled:opacity-40"
-              >
-                Trang sau
-              </button>
-            </nav>
+        {!loadingFirstPage && !error && orders.length === 0 ? <section className="staff-empty-state" aria-label="Chưa có đơn hàng">
+          <span className="staff-empty-state__icon"><Icon name={kitchen ? 'coffee' : 'receipt_long'} /></span>
+          <h2>{kitchen ? 'Quầy pha chế đang trống' : 'Chưa có đơn trong mục này'}</h2><p>{emptyDescription}</p>
+        </section> : (loadingFirstPage || orders.length > 0) && <div className="staff-order-grid">
+          <section aria-label="Danh sách đơn" className="order-collection">
+            {loadingFirstPage ? <OrderListSkeleton /> : <>
+              <div className="order-collection__heading"><h2>Danh sách đơn</h2><span>{orders.length} đơn trên trang</span></div>
+              <div>{orders.map(order => <button type="button" key={order.id} onClick={() => { setSelectedId(order.id); if (!desktop) setDetailOpen(true); }} aria-pressed={selected?.id === order.id} className="order-row">
+                <div className="order-row__main"><strong>#{order.id}</strong><span className="order-row__table"><Icon name="table_restaurant" />{order.tableName ?? 'Tại quầy'}</span></div>
+                <span className={`order-status order-status--${order.status.toLowerCase()}`}>{orderStatusLabel(order)}</span>
+                <p className="order-row__items">{order.items.map(item => `${item.quantity} × ${item.productName}`).join(' · ') || 'Chưa có món'}</p>
+                <strong className="order-row__amount">{formatCurrency(order.totalAmount)}</strong>
+                <span className="order-row__payment">{paymentLabel(order)}</span>
+                <span className="order-row__arrow"><Icon name="chevron_right" /></span>
+              </button>)}</div>
+            </>}
           </section>
-
-          <aside aria-label="Chi tiết đơn" className="xl:sticky xl:top-0">
-            {selected ? (
-              mode === "orders" ? (
-                <StaffPaymentPanel
-                  key={selected.id}
-                  order={selected}
-                  onChanged={paymentChanged}
-                />
-              ) : (
-                <CheckoutSummary order={selected} />
-              )
-            ) : (
-              <p className="rounded-2xl bg-surface p-6 text-sm">
-                Chọn một đơn để xem chi tiết.
-              </p>
-            )}
-            {kitchen && selected && (
-              <CompleteOrderButton
-                key={selected.id}
-                order={selected}
-                onChanged={paymentChanged}
-              />
-            )}
-          </aside>
-        </div>
+          {desktop && <aside aria-label="Chi tiết đơn" className="order-detail"><div className="order-detail__content">
+            {loadingFirstPage ? <OrderDetailSkeleton /> : selected && (mode === 'orders' ? <StaffPaymentPanel embedded key={selected.id} order={selected} onChanged={paymentChanged} /> : <CheckoutSummary embedded order={selected} />)}
+            {kitchen && selected && <CompleteOrderButton embedded key={selected.id} order={selected} onChanged={paymentChanged} />}
+          </div></aside>}
+        </div>}
       </div>
     </div>
-  );
+    {!desktop && <Drawer title={selected ? `Chi tiết đơn #${selected.id}` : 'Chi tiết đơn'} placement="bottom" size="auto" open={detailOpen && !!selected} onClose={() => setDetailOpen(false)} styles={{ wrapper: { maxHeight: '85dvh' }, section: { maxHeight: '85dvh', minHeight: 240 }, body: { padding: 0 } }}>
+      <div className="order-detail__content mobile-order-detail">{selected && (mode === 'orders' ? <StaffPaymentPanel embedded key={selected.id} order={selected} onChanged={paymentChanged} /> : <CheckoutSummary embedded order={selected} />)}
+        {kitchen && selected && <CompleteOrderButton embedded key={selected.id} order={selected} onChanged={paymentChanged} />}
+      </div>
+    </Drawer>}
+    <footer className="staff-page-footer"><div className="staff-page-content staff-page-footer__inner">
+      <span className="hidden text-xs text-on-surface-variant sm:block">Trang {page + 1} / {Math.max(1, pagination?.totalPages ?? page + 1)}</span>
+      <Pagination page={page} totalPages={pagination?.totalPages ?? page + 1} disabled={isLoading || !data} onPageChange={changePage} />
+    </div></footer>
+  </div>;
 }

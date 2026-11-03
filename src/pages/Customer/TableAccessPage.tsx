@@ -1,3 +1,5 @@
+import { TableAccessSkeleton } from '../../components/ui/Skeleton';
+import Icon from '../../components/ui/Icon';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getTable, guestErrorMessage } from '../../services/guest';
@@ -19,7 +21,6 @@ function TableAccess({ qrCode }: { qrCode: string }) {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState(0);
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
@@ -30,7 +31,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
       if (!controller.signal.aborted) setError(guestErrorMessage(error));
     }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [qrCode, version]);
+  }, [qrCode]);
 
   const connect = async () => {
     setConnecting(true); setError(null);
@@ -42,8 +43,13 @@ function TableAccess({ qrCode }: { qrCode: string }) {
     finally { setConnecting(false); }
   };
 
-  return <section className="mx-auto max-w-lg rounded-3xl border border-outline-variant/30 bg-surface-container-lowest p-6 text-center sm:p-9" aria-busy={loading || connecting}>
-    <span aria-hidden="true" className="material-symbols-outlined mb-4 text-5xl text-secondary">qr_code_2</span>
+  if (loading) return <section className="customer-panel customer-table-access" aria-busy="true">
+    <h1 className="sr-only">Xác nhận bàn</h1><TableAccessSkeleton />
+    <Link to="/" className="customer-text-link mt-4 justify-center">Xem thực đơn</Link>
+  </section>;
+
+  return <section className="customer-panel customer-table-access" aria-busy={loading || connecting}>
+    <span aria-hidden="true" className="icon-slot mb-4 text-5xl text-secondary"><Icon name="qr_code_2" /></span>
     <h1 className="font-headline-lg text-2xl font-bold text-primary">{loading ? 'Đang tìm bàn…' : table?.name ?? 'Xác nhận bàn'}</h1>
     {error && <p role="alert" className="mt-4 rounded-xl bg-error-container/30 p-4 text-sm text-error">{error}</p>}
     {!loading && table && <>
@@ -52,7 +58,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
       {!canConnect ? (
   <Link
     to={order ? '/checkout' : '/cart'}
-    className="mt-6 inline-flex min-h-12 items-center rounded-xl bg-primary px-6 font-semibold text-on-primary"
+    className="ui-button ui-button--primary mt-6 w-full"
   >
     Xem đơn hiện tại trước khi chọn bàn
   </Link>
@@ -60,7 +66,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
   <button
     onClick={() => void connect()}
     disabled={!table.isActive || connecting || isChecking}
-    className="mt-6 min-h-12 w-full rounded-xl bg-primary px-6 font-semibold text-on-primary disabled:opacity-50"
+    className="ui-button ui-button--primary mt-6 w-full"
   >
     {connecting
       ? 'Đang vào bàn…'
@@ -70,8 +76,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
   </button>
 )}
     </>}
-    {!loading && !table && <button onClick={() => { setLoading(true); setError(null); setVersion(value => value + 1); }} className="mt-5 min-h-11 rounded-xl border border-primary px-5 font-semibold text-primary">Thử lại</button>}
-    <Link to="/" className="mt-5 block py-3 text-sm font-semibold text-primary">Xem thực đơn</Link>
+    <Link to="/" className="customer-text-link mt-4 justify-center">Xem thực đơn</Link>
   </section>;
 }
 

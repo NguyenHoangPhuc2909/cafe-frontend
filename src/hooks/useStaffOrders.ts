@@ -7,6 +7,7 @@ import { getStaffOrders, staffErrorMessage } from "../services/staffApi";
 interface Result {
   token: string | null;
   key: string;
+  filterKey: string;
   data: PageResponse<OrderResponse> | null;
   error: string | null;
 }
@@ -18,6 +19,7 @@ export function useStaffOrders(
   const { status, paymentStatus, sessionId, page = 0, size = 20 } = query;
 
   const token = session?.accessToken ?? null;
+  const filterKey = JSON.stringify([status ?? null, paymentStatus ?? null, sessionId ?? null, size]);
   const queryKey = JSON.stringify([
     status ?? null,
     paymentStatus ?? null,
@@ -29,6 +31,7 @@ export function useStaffOrders(
   const [result, setResult] = useState<Result>({
     token: null,
     key: "",
+    filterKey: "",
     data: null,
     error: null,
   });
@@ -60,6 +63,7 @@ export function useStaffOrders(
         setResult({
           token,
           key: queryKey,
+          filterKey,
           data,
           error: null,
         });
@@ -68,6 +72,7 @@ export function useStaffOrders(
           setResult({
             token,
             key: queryKey,
+            filterKey,
             data: null,
             error: staffErrorMessage(cause),
           });
@@ -90,12 +95,15 @@ export function useStaffOrders(
         window.clearTimeout(timer);
       }
     };
-  }, [token, status, paymentStatus, sessionId, page, size, queryKey, version]);
+  }, [token, status, paymentStatus, sessionId, page, size, queryKey, filterKey, version]);
 
   const matches = !!token && result.token === token && result.key === queryKey;
 
   return {
     data: matches ? result.data : null,
+    pagination: !!token && result.token === token && result.filterKey === filterKey && result.data
+      ? { totalPages: result.data.totalPages, totalElements: result.data.totalElements }
+      : null,
     error: matches ? result.error : null,
     isLoading: !!token && (loading || !matches),
     reload,

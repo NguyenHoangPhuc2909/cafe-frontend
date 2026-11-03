@@ -1,3 +1,5 @@
+import { Skeleton } from '../components/ui/Skeleton';
+import Icon from '../components/ui/Icon';
 import { Link, Outlet, useLocation } from "react-router-dom";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -16,8 +18,6 @@ function CustomerShell() {
     session,
     isChecking,
     sessionError,
-    canRefreshSession,
-    refreshSession,
     attempt,
   } = useGuestSession();
   const showCartBar = pathname === "/" && itemCount > 0;
@@ -28,39 +28,30 @@ function CustomerShell() {
       className={`customer-shell min-h-screen min-w-0 flex flex-col selection:bg-secondary-fixed selection:text-primary ${showCartBar ? "customer-shell--with-cart" : ""}`}
     >
       <Header />
-      <main className="flex-grow min-w-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 md:py-8">
+      <main className={`flex-grow min-w-0 mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 md:py-8 ${pathname === "/" ? "max-w-7xl" : "max-w-[1104px]"}`}>
         <div
-          className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-outline-variant/30 bg-surface-container-lowest px-4 py-3 text-sm"
+          className="customer-session-strip"
           aria-live="polite"
         >
-          <p className="min-w-0 break-words text-primary">
+          <p className="flex min-w-0 items-center gap-2.5 break-words text-primary"><span aria-hidden="true" className="icon-slot shrink-0 text-xl text-secondary"><Icon name={session ? "table_restaurant" : "qr_code_2"} /></span><span>
             {isChecking
-              ? "Đang kiểm tra phiên bàn…"
+              ? <span role="status"><span className="sr-only">Đang kiểm tra phiên bàn…</span><Skeleton className="h-4 w-44 max-w-full" /></span>
               : session
                 ? `Đặt món tại ${session.tableName}`
                 : (sessionError ?? "Quét QR tại bàn để bắt đầu đặt món.")}
-          </p>
-          {sessionError && canRefreshSession && (
-            <button
-              onClick={() => void refreshSession()}
-              disabled={isChecking}
-              className="min-h-11 rounded-lg border border-primary px-3 font-semibold text-primary disabled:opacity-50"
-            >
-              Kiểm tra lại
-            </button>
-          )}
+          </span></p>
           {attempt && attempt.state !== "success" && pathname !== "/cart" && (
             <Link
               to="/cart"
-              className="min-h-11 content-center font-semibold text-primary underline"
+              className="customer-text-link"
             >
               Xem kết quả gửi đơn
             </Link>
           )}
-          {order && (
+          {order && pathname !== "/checkout" && (
             <Link
               to="/checkout"
-              className="min-h-11 content-center font-semibold text-primary underline"
+              className="customer-text-link"
             >
               {order.paymentStatus === "PAID"
                 ? "Xem đơn đã thanh toán"
@@ -83,10 +74,8 @@ function CustomerShell() {
             <span className="flex min-w-0 items-center gap-3">
               <span
                 aria-hidden="true"
-                className="material-symbols-outlined text-2xl"
-              >
-                shopping_bag
-              </span>
+                className="icon-slot text-2xl"
+              ><Icon name="shopping_bag" /></span>
               <span className="min-w-0">
                 <span className="block text-[11px] text-white/75">
                   {itemCount} món đã chọn
@@ -100,10 +89,8 @@ function CustomerShell() {
               Xem giỏ
               <span
                 aria-hidden="true"
-                className="material-symbols-outlined text-xl"
-              >
-                arrow_forward
-              </span>
+                className="icon-slot text-xl"
+              ><Icon name="arrow_forward" /></span>
             </span>
           </Link>
         </nav>

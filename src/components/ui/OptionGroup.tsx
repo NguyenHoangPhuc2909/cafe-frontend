@@ -19,7 +19,8 @@ const OptionGroup: React.FC<OptionGroupProps> = ({
         <button
           key={opt}
           onClick={() => onChange(opt)}
-          className={`px-3.5 py-1.5 rounded-xl border-2 text-[12px] font-label-caps font-semibold
+          aria-pressed={value === opt}
+          className={`inline-flex min-h-control items-center justify-center px-3.5 py-2 rounded-xl border text-[12px] font-label-caps font-semibold
             transition-all duration-150 active:scale-95
             ${value === opt
               ? 'border-primary bg-primary text-on-primary shadow-md'
