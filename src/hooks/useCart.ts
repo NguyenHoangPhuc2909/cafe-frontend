@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 import type { CartItem } from '../types/cart';
 import type { Product } from '../types/product';
+import type { DrinkSize } from '../types/productSize';
+import type { DrinkCustomization } from '../types/drinkOptions';
 import { addCartItem, changeCartQuantity, cartTotals, reconcileCart } from '../utils/cart';
 import { subtractSubmittedItems } from '../utils/guest';
 
@@ -13,8 +15,8 @@ export const useCart = (initialItems: CartItem[] = []) => {
   }, []);
 
   /** Add with customization options & qty (from modal) */
-  const addItemWithOptions = useCallback((product: Product, options: string, qty = 1) => {
-    setCart(prev => addCartItem(prev, product, qty, options));
+  const addItemWithOptions = useCallback((product: Product, qty = 1, size?: DrinkSize, customization?: DrinkCustomization) => {
+    setCart(prev => addCartItem(prev, product, qty, size, customization));
   }, []);
 
   const updateQty = useCallback((id: string, delta: number) => {

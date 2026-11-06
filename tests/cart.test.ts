@@ -14,13 +14,12 @@ test('tổng tiền bằng đơn giá nhân số lượng, không cộng phụ t
   assert.equal(cartTotals(cart).total, 0.3);
 });
 
-test('gộp đúng sản phẩm, giữ ID gốc và tách dòng tùy chọn POS', () => {
+test('gộp đúng sản phẩm và giữ riêng sản phẩm khác ID', () => {
   let cart = addCartItem([], product);
   cart = addCartItem(cart, { ...product, id: 10 });
   cart = addCartItem(cart, product, 2);
-  cart = addCartItem(cart, { ...product, price: 25000 }, 1, 'Size L');
-  assert.deepEqual(cart.map(item => [item.productId, item.quantity, item.price]), [[1, 3, 15000], [10, 1, 15000], [1, 1, 25000]]);
-  assert.equal(new Set(cart.map(item => item.id)).size, 3);
+  assert.deepEqual(cart.map(item => [item.productId, item.quantity, item.price]), [[1, 3, 15000], [10, 1, 15000]]);
+  assert.equal(new Set(cart.map(item => item.id)).size, 2);
 });
 
 test('giới hạn số lượng và bỏ dòng khi giảm về 0', () => {

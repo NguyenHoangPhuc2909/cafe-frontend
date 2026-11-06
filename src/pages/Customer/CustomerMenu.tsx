@@ -24,6 +24,7 @@ export default function CustomerMenu() {
     && (!query || `${product.name} ${product.description}`.toLocaleLowerCase('vi').includes(query)))
     .sort((a, b) => sortMode === 'price_asc' ? a.price - b.price : sortMode === 'price_desc' ? b.price - a.price : sortMode === 'name_asc' ? a.name.localeCompare(b.name, 'vi') : 0);
   const initialLoading = isLoading && products.length === 0;
+  const modalProduct = selectedProduct && (products.find(product => String(product.id) === String(selectedProduct.id)) ?? { ...selectedProduct, isActive: false });
 
   return <>
     <section className="menu-hero" aria-label="Lời chào từ quán">
@@ -64,11 +65,11 @@ export default function CustomerMenu() {
         <h3 className="font-semibold text-primary">{products.length === 0 ? 'Thực đơn đang được chuẩn bị' : 'Chưa tìm thấy món phù hợp'}</h3>
         <p className="text-sm text-on-surface-variant">{products.length === 0 ? 'Bạn có thể tải lại sau hoặc liên hệ nhân viên của quán.' : 'Thử từ khóa khác hoặc xem lại tất cả món nhé.'}</p>
         {products.length > 0 && <button type="button" className="ui-button mt-2" onClick={() => { setSearchQuery(''); setActiveCategory('Tất cả'); }}>Xem tất cả món</button>}
-      </div> : <div className="menu-grid">{filtered.map(product => <BaseProductCard key={product.id} product={product} onCardClick={setSelectedProduct} onActionPrimary={product => { addItem(product); setNotice(`Đã thêm ${product.name} vào giỏ.`); }} />)}</div>}
+      </div> : <div className="menu-grid">{filtered.map(product => <BaseProductCard key={product.id} product={product} onCardClick={setSelectedProduct} actionsDisabled={isLoading || !!menuError} onActionPrimary={product => { if (product.sizes?.length) { setSelectedProduct(product); return; } addItem(product); setNotice(`Đã thêm ${product.name} vào giỏ.`); }} />)}</div>}
     </section>
     <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-outline-variant/50 bg-surface px-5 py-4">
       <div className="flex items-center gap-3"><span aria-hidden="true" className="icon-slot flex h-control w-control shrink-0 items-center justify-center rounded-xl bg-surface-container-low text-primary"><Icon name="shopping_bag" /></span><div><p className="text-sm font-semibold text-primary">Đủ món yêu thích rồi chứ?</p><p className="mt-1 text-xs leading-relaxed text-on-surface-variant">Xem lại món và số lượng trước khi đặt.</p></div></div><Link to="/cart" className="ui-button">Xem giỏ hàng <span aria-hidden="true" className="icon-slot text-lg"><Icon name="arrow_forward" /></span></Link>
     </div>
-    <BaseProductModal isOpen={selectedProduct !== null} product={selectedProduct} variant="customer" onClose={() => setSelectedProduct(null)} onConfirm={(product, _options, qty) => { addItemWithOptions(product, '', qty); setNotice(`Đã thêm ${qty} ${product.name} vào giỏ.`); }} />
+    <BaseProductModal isOpen={selectedProduct !== null} product={modalProduct} variant="customer" disabled={isLoading || !!menuError || modalProduct?.isActive === false} disabledMessage={menuError ?? (modalProduct?.isActive === false ? 'Món đang ngừng bán.' : isLoading ? 'Đang cập nhật thực đơn…' : undefined)} onClose={() => setSelectedProduct(null)} onConfirm={(product, qty, size, customization) => { addItemWithOptions(product, qty, size, customization); setNotice(`Đã thêm ${qty} ${product.name}${size ? ` · Size ${size}` : ''} vào giỏ.`); }} />
   </>;
 }

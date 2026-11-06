@@ -74,15 +74,6 @@ function App() {
                 }
               />
               <Route
-                path="settings"
-                element={
-                  <div className="p-8">
-                    Thiết lập nhân viên và phân quyền chưa được nối trong bản
-                    thử UI.
-                  </div>
-                }
-              />
-              <Route
                 path="*"
                 element={<Navigate to="/staff/orders" replace />}
               />

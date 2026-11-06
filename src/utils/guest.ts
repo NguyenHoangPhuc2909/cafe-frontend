@@ -1,4 +1,5 @@
 import type { CartItem } from "../types/cart.ts";
+import { drinkOptionsKey, isDrinkOptionLevel, normalizeDrinkOptions } from './drinkOptions.ts';
 import type {
   GuestOrderRequest,
   GuestOrderResponse,
@@ -50,7 +51,9 @@ export function isGuestOrder(value: unknown): value is GuestOrderResponse {
         positiveId(item.quantity) &&
         typeof item.price === "number" &&
         Number.isFinite(item.price) &&
-        item.price >= 0,
+        item.price >= 0 &&
+        (item.size == null || item.size === 'M' || item.size === 'L') &&
+        isDrinkOptionLevel(item.iceLevel) && isDrinkOptionLevel(item.sweetnessLevel),
     )
   );
 }
@@ -60,28 +63,28 @@ export function buildGuestOrder(
   note: string,
 ): GuestOrderRequest {
   if (!items.length) throw new Error("Bạn chưa chọn món.");
-  const quantities = new Map<number, number>();
+  const lines = new Map<string, GuestOrderRequest['items'][number]>();
   for (const item of items) {
     if (
       !positiveId(item.productId) ||
       !positiveId(item.quantity) ||
       item.isAvailable === false ||
-      item.options
+      !isDrinkOptionLevel(item.iceLevel) || !isDrinkOptionLevel(item.sweetnessLevel) ||
+      (item.size != null && item.size !== 'M' && item.size !== 'L') ||
+      ('options' in item && item.options)
     ) {
       throw new Error(
         "Giỏ có món không hợp lệ hoặc ngừng bán. Vui lòng kiểm tra lại.",
       );
     }
-    const quantity = (quantities.get(item.productId) ?? 0) + item.quantity;
+    const key = `${item.productId}:${item.size ?? ''}${drinkOptionsKey(item)}`;
+    const quantity = (lines.get(key)?.quantity ?? 0) + item.quantity;
     if (!Number.isSafeInteger(quantity) || quantity > 2147483647)
       throw new Error("Số lượng món vượt giới hạn.");
-    quantities.set(item.productId, quantity);
+    lines.set(key, { productId: item.productId, quantity, ...(item.size ? { size: item.size } : {}), ...normalizeDrinkOptions(item) });
   }
   return {
-    items: [...quantities].map(([productId, quantity]) => ({
-      productId,
-      quantity,
-    })),
+    items: [...lines.values()],
     note: note.trim().slice(0, 500),
   };
 }

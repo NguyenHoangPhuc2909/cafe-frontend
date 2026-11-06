@@ -292,8 +292,6 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
         session,
         isChecking,
         sessionError,
-        canRefreshSession: !!access,
-        refreshSession,
         connectTable,
         attempt,
         isSubmitting,

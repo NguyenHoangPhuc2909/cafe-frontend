@@ -29,7 +29,6 @@ const order: OrderResponse = {
     productName: 'Nước chai',
     quantity: 2,
     price: 15000,
-    toppingNames: null,
   }],
 };
 

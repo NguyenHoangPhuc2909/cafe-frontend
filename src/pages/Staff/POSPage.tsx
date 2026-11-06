@@ -9,8 +9,12 @@ import type { Product } from '../../types/product';
 import type { OrderMode } from '../../types/staff';
 import { usePosMenu } from '../../hooks/usePosMenu';
 import { filterPosMenu, posMenuCategories } from '../../utils/posMenu';
+import { useStaffAuth } from '../../hooks/useStaffAuth';
+import type { DrinkSize } from '../../types/productSize';
+import type { DrinkCustomization } from '../../types/drinkOptions';
 
 const POSPage: React.FC = () => {
+  const { session } = useStaffAuth();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [orderMode, setOrderMode] = useState<OrderMode>('dinein');
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,7 +33,8 @@ const POSPage: React.FC = () => {
     setActiveCategory(current => current && menu.some(product => product.category === current) ? current : null);
     setModalProduct(current => current ? menu.find(product => String(product.id) === String(current.id)) ?? null : null);
   }, [syncProducts]);
-  const { products, isLoading, error } = usePosMenu(onMenuLoaded);
+  const { products, isLoading, error, setProductActive, updatingId, updateError, notice } = usePosMenu(session?.accessToken, onMenuLoaded);
+  const saving = updatingId !== null;
   const closeModal = useCallback(() => setModalProduct(null), []);
   const categories = [
     { value: null as string | null, label: 'Tất cả', icon: 'restaurant_menu', count: products.length },
@@ -37,11 +42,11 @@ const POSPage: React.FC = () => {
   ];
   const selectedCategory = products.some(product => product.category === activeCategory) ? activeCategory : null;
   const filteredProducts = filterPosMenu(products, selectedCategory, searchQuery);
-  const addCurrentProduct = (product: Product, options = '', quantity = 1) => {
-    if (isLoading || error) return;
+  const addCurrentProduct = (product: Product, quantity = 1, size?: DrinkSize, customization?: DrinkCustomization) => {
+    if (isLoading || error || saving) return;
     const current = products.find(candidate => String(candidate.id) === String(product.id));
     if (!current || current.isActive === false) return;
-    if (options || quantity !== 1) addItemWithOptions(current, options, quantity);
+    if (quantity !== 1 || size || customization) addItemWithOptions(current, quantity, size, customization);
     else addItem(current);
   };
 
@@ -68,7 +73,7 @@ const POSPage: React.FC = () => {
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <span className="rounded-md bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-secondary">{isLoading ? 'Đang tải…' : error ? 'Mất kết nối' : `${filteredProducts.length} món`}</span>
+              <span className="rounded-md bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-secondary">{isLoading ? 'Đang tải…' : error ? 'Mất kết nối' : `${filteredProducts.length} món · ${products.filter(product => product.isActive !== false).length} đang bán`}</span>
 
             </div>
           </div>
@@ -124,6 +129,9 @@ const POSPage: React.FC = () => {
           </div>
         </div>
 
+        {updateError && <p role="alert" className="pos-menu-notice pos-menu-notice--error">{updateError}</p>}
+        <p role="status" aria-live="polite" className="sr-only">{notice}</p>
+
         {/* Product Grid */}
         {isLoading && products.length === 0 ? (
           <ProductGridSkeleton staff />
@@ -135,8 +143,8 @@ const POSPage: React.FC = () => {
           </div>
         ) : products.length === 0 ? (
           <div role="status" className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-            <h2 className="font-semibold text-primary">Chưa có món đang bán</h2>
-            <p className="text-sm text-on-surface-variant">Thực đơn hiện chưa có sản phẩm được bật bán.</p>
+            <h2 className="font-semibold text-primary">Chưa có món trong thực đơn</h2>
+            <p className="text-sm text-on-surface-variant">Thêm sản phẩm vào thực đơn để quản lý trạng thái bán.</p>
 
           </div>
         ) : filteredProducts.length === 0 ? (
@@ -160,8 +168,12 @@ const POSPage: React.FC = () => {
                 variant="staff"
                 cartQty={getCartQty(product)}
                 onCardClick={setModalProduct}
-                onActionPrimary={product => addCurrentProduct(product)}
+                onActionPrimary={product => product.sizes?.length ? setModalProduct(product) : addCurrentProduct(product)}
                 onActionSecondary={setModalProduct}
+                onActiveChange={(product, active) => void setProductActive(product, active)}
+                activeUpdating={String(updatingId) === String(product.id)}
+                activeDisabled={isLoading || !!error || saving}
+                actionsDisabled={isLoading || !!error || saving}
               />
             ))}
           </div>
@@ -230,7 +242,7 @@ const POSPage: React.FC = () => {
           onUpdateQty={updateQty}
           onRemove={removeItem}
           onClear={clearCart}
-          checkoutDisabled={isLoading || !!error}
+          checkoutDisabled={isLoading || !!error || saving}
           onCheckout={() => {
             alert('Chức năng tạo đơn và thanh toán POS chưa được kết nối.');
             setShowMobileCart(false);
@@ -243,9 +255,8 @@ const POSPage: React.FC = () => {
         product={modalProduct}
         isOpen={modalProduct !== null}
         variant="staff"
-        allowSizeSelection={false}
-        disabled={isLoading || !!error}
-        disabledMessage={error ?? (isLoading ? 'Đang cập nhật thực đơn, vui lòng chờ trước khi thêm món.' : undefined)}
+        disabled={isLoading || !!error || saving || modalProduct?.isActive === false}
+        disabledMessage={error ?? (modalProduct?.isActive === false ? 'Món đang ngừng bán.' : saving ? 'Đang lưu trạng thái món…' : isLoading ? 'Đang cập nhật thực đơn, vui lòng chờ trước khi thêm món.' : undefined)}
         onClose={closeModal}
         onConfirm={addCurrentProduct}
       />

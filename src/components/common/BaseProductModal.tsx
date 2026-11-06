@@ -1,6 +1,8 @@
 import Icon from '../ui/Icon';
 import { useEffect, useRef, useState } from 'react';
 import type { Product } from '../../types/product';
+import type { DrinkSize } from '../../types/productSize';
+import type { DrinkCustomization } from '../../types/drinkOptions';
 import { formatCurrency } from '../../utils/format';
 import { PRODUCT_PLACEHOLDER } from '../../utils/products';
 import OptionGroup from '../ui/OptionGroup';
@@ -10,24 +12,24 @@ interface BaseProductModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (product: Product, optionsStr: string, qty: number) => void;
+  onConfirm: (product: Product, qty: number, size?: DrinkSize, customization?: DrinkCustomization) => void;
   variant?: 'customer' | 'staff';
-  allowSizeSelection?: boolean;
   disabled?: boolean;
   disabledMessage?: string;
 }
 
-function ProductModalContent({ product, onClose, onConfirm, variant = 'customer', allowSizeSelection = true, disabled = false, disabledMessage }:
+function ProductModalContent({ product, onClose, onConfirm, variant = 'customer', disabled = false, disabledMessage }:
   BaseProductModalProps & { product: Product }) {
   const [size, setSize] = useState('M');
-  const [ice, setIce] = useState('Ít đá');
-  const [sugar, setSugar] = useState('70%');
-  const [note, setNote] = useState('');
+  const [ice, setIce] = useState('Mặc định');
+  const [sugar, setSugar] = useState('Mặc định');
   const [qty, setQty] = useState(1);
   const panelRef = useRef<HTMLDivElement>(null);
   const isStaff = variant === 'staff';
-  const hasSizeOptions = isStaff && allowSizeSelection;
-  const unitPrice = product.price + (hasSizeOptions && size === 'L' ? 10000 : 0);
+  const hasSizeOptions = !!product.sizes?.length;
+  const sizeOption = hasSizeOptions ? product.sizes?.find(option => option.size === size) : undefined;
+  const unitPrice = sizeOption?.price ?? product.price;
+  const sizeUnavailable = hasSizeOptions && !sizeOption;
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -53,11 +55,12 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
   }, [onClose]);
 
   const handleConfirm = () => {
-    if (disabled) return;
-    const options = isStaff
-      ? [hasSizeOptions ? `Size ${size}` : '', ice, `${sugar} ngọt`, note.trim() ? `Ghi chú: ${note.trim()}` : ''].filter(Boolean).join(' · ')
-      : '';
-    onConfirm({ ...product, price: unitPrice }, options, qty);
+    if (disabled || sizeUnavailable || product.isActive === false) return;
+    const customization: DrinkCustomization | undefined = hasSizeOptions ? {
+      iceLevel: ice === 'Ít đá' ? 'LESS' : ice === 'Không đá' ? 'NONE' : 'DEFAULT',
+      sweetnessLevel: sugar === 'Ít ngọt' ? 'LESS' : sugar === 'Không đường' ? 'NONE' : 'DEFAULT',
+    } : undefined;
+    onConfirm(product, qty, sizeOption?.size, customization);
     onClose();
   };
 
@@ -83,22 +86,19 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
               {product.description && <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">{product.description}</p>}
               <p className="mt-4 font-headline-md text-xl font-bold text-primary">{formatCurrency(unitPrice)}</p>
             </div>
-            {isStaff && <div className="space-y-5 border-t border-outline-variant/30 pt-5">
-              {hasSizeOptions && <OptionGroup label="Chọn size" options={['M', 'L']} value={size} onChange={setSize} />}
-              {hasSizeOptions && size === 'L' && <p className="text-xs text-secondary">Size L thêm {formatCurrency(10000)}</p>}
-              {!hasSizeOptions && <p className="text-xs text-on-surface-variant">Đơn giá theo thực đơn của quán. Tùy chọn đá và đường không cộng phụ thu.</p>}
-              <OptionGroup label="Lượng đá" options={['Nhiều đá', 'Ít đá', 'Không đá']} value={ice} onChange={setIce} />
-              <OptionGroup label="Độ ngọt" options={['100%', '70%', '50%', 'Không đường']} value={sugar} onChange={setSugar} />
-              <div>
-                <label htmlFor="staff-product-note" className="mb-2 block text-xs font-bold uppercase text-primary">Ghi chú cho barista</label>
-                <input id="staff-product-note" value={note} onChange={event => setNote(event.target.value)} placeholder="VD: ít sữa, để riêng đá…" className="min-h-control w-full rounded-xl border border-outline-variant/40 bg-surface p-3 text-base outline-none focus:border-primary" />
-              </div>
+            {hasSizeOptions && <div className="space-y-3 border-t border-outline-variant/30 pt-5">
+              <OptionGroup label="Chọn size" options={product.sizes!.map(option => option.size)} value={size} onChange={setSize} />
+              {sizeUnavailable && <p role="status" className="text-xs text-error">Size này không còn phục vụ. Vui lòng chọn lại.</p>}
+            </div>}
+            {hasSizeOptions && <div className="space-y-5 border-t border-outline-variant/30 pt-5">
+              <OptionGroup label="Lượng đá" options={['Mặc định', 'Ít đá', 'Không đá']} value={ice} onChange={setIce} />
+              <OptionGroup label="Độ ngọt" options={['Mặc định', 'Ít ngọt', 'Không đường']} value={sugar} onChange={setSugar} />
             </div>}
           </div>
           <div className="shrink-0 space-y-3 border-t border-outline-variant/30 bg-surface-container-lowest p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3"><span className="text-sm font-semibold text-primary">Số lượng</span><QuantityStepper quantity={qty} onChange={setQty} size="md" /></div>
             {disabled && disabledMessage && <p role="status" className="text-sm text-error">{disabledMessage}</p>}
-            <button onClick={handleConfirm} disabled={disabled} className="ui-button ui-button--primary w-full justify-between">
+            <button onClick={handleConfirm} disabled={disabled || sizeUnavailable || product.isActive === false} className="ui-button ui-button--primary w-full justify-between">
               <span>{isStaff ? 'Thêm vào đơn' : 'Thêm vào giỏ'}</span>
               <span className="flex shrink-0 items-center gap-2">{formatCurrency(unitPrice * qty)}<span aria-hidden="true" className="icon-slot text-xl"><Icon name="add_shopping_cart" /></span></span>
             </button>

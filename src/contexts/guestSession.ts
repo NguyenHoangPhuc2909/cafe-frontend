@@ -9,8 +9,6 @@ export interface GuestSessionValue {
   session: TableSessionResponse | null;
   isChecking: boolean;
   sessionError: string | null;
-  canRefreshSession: boolean;
-  refreshSession: () => Promise<void>;
   connectTable: (qrCode: string) => Promise<void>;
   attempt: OrderAttempt | null;
   isSubmitting: boolean;

@@ -13,7 +13,7 @@ const item: CartItem = { id: '11:row', productId: 11, name: 'Nước chai', quan
 const order: GuestOrderResponse = {
   id: 9, sessionId: 7, tableId: 3, tableName: 'Bàn 03', totalAmount: 30000, status: 'PENDING', paymentStatus: 'UNPAID',
   paymentExpiresAt: '2026-10-24T10:05:00Z', createdAt: '2026-10-24T17:00:00',
-  items: [{ id: 20, productName: 'Nước chai', quantity: 2, price: 15000, toppingNames: null }],
+  items: [{ id: 20, productName: 'Nước chai', quantity: 2, price: 15000 }],
 };
 
 test('payload uses productId and quantity only, merges rows, trims note, ignores browser prices', () => {

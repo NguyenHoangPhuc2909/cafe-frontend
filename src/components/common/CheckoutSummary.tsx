@@ -1,5 +1,6 @@
 import type { OrderResponse } from '../../types/order';
 import { formatCurrency } from '../../utils/format';
+import { formatDrinkOptions } from '../../utils/drinkOptions';
 
 export default function CheckoutSummary({
   order,
@@ -28,6 +29,8 @@ export default function CheckoutSummary({
           <li key={item.id} className="flex justify-between gap-4">
             <span className="min-w-0 break-words">
               {item.quantity} × {item.productName}
+              {item.size && <span className="mt-1 block text-xs text-on-surface-variant">Size {item.size}</span>}
+              {formatDrinkOptions(item) && <span className="mt-1 block text-xs text-on-surface-variant">{formatDrinkOptions(item)}</span>}
             </span>
             <span className="shrink-0 font-semibold text-primary">
               {formatCurrency(item.price * item.quantity)}

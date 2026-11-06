@@ -1,13 +1,16 @@
+import type { DrinkSize } from './productSize';
+import type { DrinkCustomization } from './drinkOptions';
+
 export type OrderPaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED';
 
 export type OrderStatus = 'PENDING' | 'PREPARING'  | 'COMPLETED' | 'EXPIRED';
 
-export interface OrderItemResponse {
+export interface OrderItemResponse extends DrinkCustomization {
   id: number;
   productName: string;
   quantity: number;
   price: number;
-  toppingNames: string[] | null;
+  size?: DrinkSize | null;
 }
 
 export interface OrderResponse {

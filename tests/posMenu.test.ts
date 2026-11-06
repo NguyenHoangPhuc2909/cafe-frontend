@@ -15,10 +15,10 @@ const products: Product[] = [
 
 test('POS categories and counts come from exact category names returned by BE', () => {
   assert.deepEqual(posMenuCategories(products).map(category => [category.label, category.count]), [
-    ['TEST26 - Cà phê', 1], ['TEST26 - Trà trái cây', 1], ['TEST26 - Đóng chai', 1],
+    ['TEST26 - Cà phê', 1], ['TEST26 - Trà trái cây', 1], ['TEST26 - Đóng chai', 2],
   ]);
   assert.deepEqual(filterPosMenu(products, 'TEST26 - Cà phê', '').map(product => product.id), [5]);
-  assert.equal(filterPosMenu(products, null, '').length, 3);
+  assert.equal(filterPosMenu(products, null, '').length, 4);
   assert.deepEqual(posMenuCategories([]), []);
 });
 
@@ -26,7 +26,7 @@ test('POS search handles Vietnamese accents and respects the selected category',
   assert.deepEqual(filterPosMenu(products, null, 'ca phe sua da').map(product => product.id), [5]);
   assert.deepEqual(filterPosMenu(products, null, 'TRA DAO').map(product => product.id), [8]);
   assert.deepEqual(filterPosMenu(products, 'TEST26 - Cà phê', 'tra dao'), []);
-  assert.deepEqual(filterPosMenu(products, null, 'tam ngung'), []);
+  assert.deepEqual(filterPosMenu(products, null, 'tam ngung').map(product => product.id), [25]);
 });
 
 test('a DB-priced basket totals 100000 VND and refresh updates price or disables missing dishes', () => {

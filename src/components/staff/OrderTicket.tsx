@@ -1,5 +1,6 @@
 import Icon from '../ui/Icon';
 import React from 'react';
+import { formatDrinkOptions } from '../../utils/drinkOptions';
 import type { CartItem } from '../../types/cart';
 import type { OrderMode } from '../../types/staff';
 import { formatCurrency } from '../../utils/format';
@@ -114,11 +115,8 @@ const OrderTicket: React.FC<OrderTicketProps> = ({
                   <p className="font-body-md font-semibold text-[13px] text-on-surface line-clamp-1 leading-snug">
                     {item.name}
                   </p>
-                  {item.options && (
-                    <p className="text-[10px] font-label-caps text-secondary font-semibold mt-0.5 tracking-wide line-clamp-1">
-                      ↳ {item.options}
-                    </p>
-                  )}
+                  {item.size && <p className="mt-1 text-xs text-secondary">Size {item.size}</p>}
+                  {formatDrinkOptions(item) && <p className="mt-1 text-xs text-secondary">{formatDrinkOptions(item)}</p>}
                   {item.isAvailable === false && <p className="mt-1 text-xs font-semibold text-error">Món đã ngừng bán. Vui lòng xóa khỏi phiếu.</p>}
                 </div>
                 <span className="font-body-md font-bold text-[13px] text-on-surface shrink-0">

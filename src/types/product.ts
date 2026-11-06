@@ -1,3 +1,5 @@
+import type { ProductSizeOption } from './productSize';
+
 export interface Product {
   id: string | number;
   name: string;
@@ -7,7 +9,7 @@ export interface Product {
   category: string;
   categoryId?: number | null;
   isActive?: boolean;
+  sizes?: ProductSizeOption[];
   origin?: string;
-  options?: string;
   badge?: 'Mới' | 'Best Seller' | 'Signature' | 'Đặc sản' | 'Cổ điển' | null;
 }

@@ -11,6 +11,7 @@ import type { OrderResponse } from "../../types/order";
 import type { StaffOrderQuery } from "../../types/staffApi";
 import StaffPaymentPanel from "../../components/staff/StaffPaymentPanel";
 import { formatCurrency } from "../../utils/format";
+import { formatDrinkOptions } from '../../utils/drinkOptions';
 import CheckoutSummary from "../../components/common/CheckoutSummary";
 import CompleteOrderButton from "../../components/staff/CompleteOrderButton";
 
@@ -165,7 +166,7 @@ export default function StaffOrdersPage({
               <div>{orders.map(order => <button type="button" key={order.id} onClick={() => { setSelectedId(order.id); if (!desktop) setDetailOpen(true); }} aria-pressed={selected?.id === order.id} className="order-row">
                 <div className="order-row__main"><strong>#{order.id}</strong><span className="order-row__table"><Icon name="table_restaurant" />{order.tableName ?? 'Tại quầy'}</span></div>
                 <span className={`order-status order-status--${order.status.toLowerCase()}`}>{orderStatusLabel(order)}</span>
-                <p className="order-row__items">{order.items.map(item => `${item.quantity} × ${item.productName}`).join(' · ') || 'Chưa có món'}</p>
+                <p className="order-row__items">{order.items.map(item => `${item.quantity} × ${item.productName}${item.size ? ` (${item.size})` : ''}${formatDrinkOptions(item) ? ` — ${formatDrinkOptions(item)}` : ''}`).join(' · ') || 'Chưa có món'}</p>
                 <strong className="order-row__amount">{formatCurrency(order.totalAmount)}</strong>
                 <span className="order-row__payment">{paymentLabel(order)}</span>
                 <span className="order-row__arrow"><Icon name="chevron_right" /></span>

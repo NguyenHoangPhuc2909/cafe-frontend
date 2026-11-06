@@ -11,7 +11,6 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   const [latest, setLatest] = useState<GuestOrderResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [version, setVersion] = useState(0);
 
   // Kết quả POST đã được GuestSessionProvider lưu để phục hồi sau reload.
   const storedOrder =
@@ -58,7 +57,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
         window.clearTimeout(timer);
       }
     };
-  }, [orderId, readOrder, version]);
+  }, [orderId, readOrder]);
 
   const startCheckout = async (): Promise<boolean> => {
     setError(null);
@@ -84,10 +83,6 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-  const refreshOrder = () => {
-    setVersion((current) => current + 1);
-  };
-
   const startNewOrder = (): boolean => {
     if (!order) return true;
 
@@ -108,7 +103,6 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       value={{
         order,
         startCheckout,
-        refreshOrder,
         startNewOrder,
         error: error ?? guest.orderError,
       }}

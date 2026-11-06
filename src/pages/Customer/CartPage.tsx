@@ -6,8 +6,12 @@ import { useGuestSession } from '../../hooks/useGuestSession';
 import { useCheckout } from '../../hooks/useCheckout';
 import { formatCurrency } from '../../utils/format';
 import { PRODUCT_PLACEHOLDER } from '../../utils/products';
+import { formatDrinkOptions } from '../../utils/drinkOptions';
+import type { CartItem } from '../../types/cart';
 import GuestOrderResult from '../../components/common/GuestOrderResult';
 import CustomerFlowSteps from '../../components/common/CustomerFlowSteps';
+
+const itemLabel = (item: CartItem) => [item.name, item.size ? `size ${item.size}` : '', formatDrinkOptions(item)].filter(Boolean).join(' · ');
 
 export default function CartPage() {
   const { cart, updateQty, removeItem, clearCart, subtotal, total, itemCount, note, setNote, menuError, isLoading } = useCustomerCart();
@@ -43,10 +47,10 @@ export default function CartPage() {
           {cart.map(item => <article key={item.id} className="customer-cart-item">
             <div className="customer-cart-item__main">
               <img src={item.imageUrl || PRODUCT_PLACEHOLDER} alt={item.name} onError={event => { if (!event.currentTarget.src.endsWith(PRODUCT_PLACEHOLDER)) event.currentTarget.src = PRODUCT_PLACEHOLDER; }} />
-              <div className="customer-cart-item__info"><h3>{item.name}</h3><p>{formatCurrency(item.price)}<span> / món</span></p>{item.isAvailable === false && <span className="customer-unavailable-badge">Tạm ngừng bán</span>}</div>
-              <button type="button" aria-label={`Xóa ${item.name} khỏi giỏ`} onClick={() => removeItem(item.id)} className="customer-remove-item"><Icon name="close" /></button>
+              <div className="customer-cart-item__info"><h3>{item.name}</h3><p>{item.size && <span className="mr-2 font-semibold text-secondary">Size {item.size}</span>}{formatCurrency(item.price)}<span> / món</span></p>{formatDrinkOptions(item) && <p className="text-xs text-secondary">{formatDrinkOptions(item)}</p>}{item.isAvailable === false && <span className="customer-unavailable-badge">Tạm ngừng bán</span>}</div>
+              <button type="button" aria-label={`Xóa ${itemLabel(item)} khỏi giỏ`} onClick={() => removeItem(item.id)} className="customer-remove-item"><Icon name="close" /></button>
             </div>
-            <div className="customer-cart-item__controls"><QuantityStepper quantity={item.quantity} size="sm" disabled={item.isAvailable === false} label={`Số lượng ${item.name}`} onChange={quantity => updateQty(item.id, quantity - item.quantity)} /><strong>{formatCurrency(item.price * item.quantity)}</strong></div>
+            <div className="customer-cart-item__controls"><QuantityStepper quantity={item.quantity} size="sm" disabled={item.isAvailable === false} label={`Số lượng ${itemLabel(item)}`} onChange={quantity => updateQty(item.id, quantity - item.quantity)} /><strong>{formatCurrency(item.price * item.quantity)}</strong></div>
           </article>)}
         </div>
         <div className="customer-panel customer-cart-note"><label htmlFor="order-note">Ghi chú cho quán <span>Không bắt buộc</span></label><textarea id="order-note" value={note} onChange={event => setNote(event.target.value)} maxLength={500} rows={3} placeholder="Ví dụ: mang ra cùng lúc, cần thêm khăn giấy…" /><p>{note.length}/500</p></div>

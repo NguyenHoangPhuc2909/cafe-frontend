@@ -1,4 +1,6 @@
 import type { OrderResponse } from "./order";
+import type { DrinkSize } from './productSize';
+import type { DrinkCustomization } from './drinkOptions';
 
 export interface CafeTableResponse {
   id: number;
@@ -25,7 +27,7 @@ export interface TableSessionResponse {
 }
 
 export interface GuestOrderRequest {
-  items: { productId: number; quantity: number }[];
+  items: ({ productId: number; quantity: number; size?: DrinkSize } & DrinkCustomization)[];
   note: string;
 }
 
