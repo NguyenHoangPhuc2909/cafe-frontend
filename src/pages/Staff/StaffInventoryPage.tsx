@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { message } from "antd";
 import { useStaffAuth } from "../../hooks/useStaffAuth";
 import {
   getStaffIngredients,
@@ -7,18 +8,24 @@ import {
   type Ingredient,
 } from "../../services/staffInventory";
 import { staffErrorMessage } from "../../services/staffApi";
+import StockReceiptModal from "../../components/staff/StockReceiptModal";
 
 interface Result {
   token: string;
+  version: number;
   items: Ingredient[];
   packaged: PackagedStock[];
   error: string | null;
 }
 
 export default function StaffInventoryPage() {
+  const [messageApi, contextHolder] = message.useMessage({ maxCount: 1 });
   const { session } = useStaffAuth();
   const token = session?.accessToken;
   const [result, setResult] = useState<Result | null>(null);
+
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [loadVersion, setLoadVersion] = useState(0);
 
   useEffect(() => {
     if (!token) return;
@@ -31,12 +38,21 @@ export default function StaffInventoryPage() {
     ])
       .then(([items, packaged]) => {
         if (controller.signal.aborted) return;
-        setResult({ token, items, packaged, error: null });
+
+        setResult({
+          token,
+          version: loadVersion,
+          items,
+          packaged,
+          error: null,
+        });
       })
       .catch((error) => {
         if (controller.signal.aborted) return;
+
         setResult({
           token,
+          version: loadVersion,
           items: [],
           packaged: [],
           error: staffErrorMessage(error),
@@ -44,23 +60,42 @@ export default function StaffInventoryPage() {
       });
 
     return () => controller.abort();
-  }, [token]);
+  }, [token, loadVersion]);
 
-  const current = result?.token === token ? result : null;
+  const current =
+    result !== null && result.token === token && result.version === loadVersion
+      ? result
+      : null;
+
+  const canReceive =
+    !!current &&
+    !current.error &&
+    (current.items.length > 0 || current.packaged.length > 0);
 
   return (
     <div className="staff-page-scroll h-full">
+      {contextHolder}
       <div className="staff-page-content">
         <div className="staff-page-heading">
           <div>
             <h1>Tồn kho</h1>
             <p>Theo dõi nguyên liệu và hàng đóng gói khả dụng trong quán.</p>
           </div>
+          <button
+            type="button"
+            disabled={!canReceive}
+            onClick={() => {
+              setReceiptOpen(true);
+            }}
+            className="min-h-control rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary disabled:opacity-40"
+          >
+            Nhập kho
+          </button>
         </div>
 
         {!current ? (
           <p role="status" className="mt-6">
-            Đang tải nguyên liệu…
+            Đang tải tồn kho…
           </p>
         ) : current.error ? (
           <p role="alert" className="mt-6 text-error">
@@ -174,6 +209,26 @@ export default function StaffInventoryPage() {
               </div>
             )}
           </section>
+        )}
+
+        {receiptOpen && session && current && !current.error && (
+          <StockReceiptModal
+            key={session.username}
+            token={session.accessToken}
+            username={session.username}
+            ingredients={current.items}
+            packaged={current.packaged}
+            onClose={() => setReceiptOpen(false)}
+            onSuccess={(movement) => {
+              setReceiptOpen(false);
+              void messageApi.success({
+                key: "stock-receipt-success",
+                content: `Đã ghi nhận phiếu nhập kho #${movement.id}.`,
+                duration: 4,
+              });
+              setLoadVersion((version) => version + 1);
+            }}
+          />
         )}
       </div>
     </div>
