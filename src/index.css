@@ -257,7 +257,7 @@
 .pos-menu-notice--error { background: #fff2f0; color: #a83131; }
 
 /* Staff workspace */
-.staff-shell { height: 100dvh; width: 100%; display: flex; flex-direction: column; overflow: hidden; color: var(--color-on-surface); background: var(--color-background); }
+.staff-shell {position: fixed; inset: 0; height: 100dvh; width: 100%; display: flex; flex-direction: column; overflow: hidden; color: var(--color-on-surface); background: var(--color-background); }
 .staff-topbar { height: 64px; padding: 0 24px; display: flex; align-items: center; gap: 30px; flex-shrink: 0; border-bottom: 1px solid #e6e9ed; background: white; z-index: 30; }
 .staff-brand { display: inline-flex; align-items: center; gap: 10px; min-width: 160px; color: #3d2c23; font-size: 15px; font-weight: 700; letter-spacing: -0.4px; white-space: nowrap; }
 .staff-brand__mark { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 7px; background: #f7eee5; color: #a36840; }

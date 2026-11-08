@@ -18,6 +18,7 @@ import { StaffAuthProvider } from "./contexts/StaffAuthProvider";
 import StaffLoginPage from "./pages/Staff/StaffLoginPage";
 import RequireStaffAuth from "./components/staff/RequireStaffAuth";
 import RequireOrderStaff from "./components/staff/RequireOrderStaff";
+import StaffInventoryPage from "./pages/Staff/StaffInventoryPage";
 
 function App() {
   return (
@@ -64,15 +65,7 @@ function App() {
                 element={<StaffOrdersPage key="history" mode="history" />}
               />
               <Route path="tables" element={<StaffTablesPage />} />
-              <Route
-                path="inventory"
-                element={
-                  <div className="p-8">
-                    Quản trị Kho/Menu sẽ được nối ở bước tiếp theo. POS đang đọc
-                    thực đơn bán hàng từ DB.
-                  </div>
-                }
-              />
+              <Route path="inventory" element={<StaffInventoryPage />} />
               <Route
                 path="*"
                 element={<Navigate to="/staff/orders" replace />}

@@ -9,7 +9,7 @@ const STAFF_NAV = [
   { path: '/staff/kds', label: 'Pha chế', icon: 'coffee' },
   { path: '/staff/tables', label: 'Sơ đồ bàn', icon: 'table_restaurant' },
   { path: '/staff/history', label: 'Lịch sử đơn', icon: 'history' },
-  { path: '/staff/inventory', label: 'Kho & thực đơn', icon: 'inventory_2' },
+  { path: '/staff/inventory', label: 'Tồn kho', icon: 'inventory_2' },
 ];
 
 export default function StaffLayout() {
@@ -41,7 +41,7 @@ export default function StaffLayout() {
       <main className="staff-main"><Outlet /></main>
     </div>
     <nav aria-label="Điều hướng nhân viên trên điện thoại" className="staff-mobile-nav">
-      {visibleNav.filter(item => item.path !== '/staff/inventory').map(item => <Link key={item.path} to={item.path} aria-current={active(item.path) ? 'page' : undefined}><Icon name={item.icon} /><span>{item.label}</span></Link>)}
+      {visibleNav.map(item => <Link key={item.path} to={item.path} aria-current={active(item.path) ? 'page' : undefined}><Icon name={item.icon} /><span>{item.label}</span></Link>)}
     </nav>
   </div>;
 }
