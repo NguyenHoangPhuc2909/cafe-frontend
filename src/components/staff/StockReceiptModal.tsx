@@ -70,10 +70,7 @@ export default function StockReceiptModal({
   const options = kind === "ingredient" ? ingredients : packaged;
   const selected = options.find((item) => item.id === Number(selectedId));
 
-  const unit =
-    kind === "ingredient"
-      ? ingredients.find((item) => item.id === Number(selectedId))?.unit
-      : "đơn vị sản phẩm";
+  const unit = selected?.unit;
 
   const warn = (content: string) => {
     void messageApi.warning({
@@ -200,7 +197,7 @@ export default function StockReceiptModal({
             Số lượng nhập thêm {unit ? `(${unit})` : ""}
             <input
               type="number"
-              step="any"
+              step={kind === "packaged" ? 1 : "any"}
               value={quantity}
               disabled={locked || blocked}
               className={fieldClass}

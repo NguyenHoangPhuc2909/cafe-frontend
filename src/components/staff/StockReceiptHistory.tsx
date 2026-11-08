@@ -5,10 +5,15 @@ import type { PageResponse } from "../../types/api";
 import type { StockMovementResponse } from "../../types/inventory";
 import { getStaffReceiptHistory } from "../../services/staffInventory";
 import { staffErrorMessage } from "../../services/staffApi";
+import StockReceiptFilters from "./StockReceiptFilters";
+import type { Ingredient, PackagedStock } from "../../services/staffInventory";
+import type { StockReceiptHistoryFilters } from "../../types/inventory";
 
 interface Props {
   token: string;
   refreshVersion: number;
+  ingredients: Ingredient[];
+  packaged: PackagedStock[];
 }
 
 interface Result {
@@ -18,6 +23,7 @@ interface Result {
   retry: number;
   data: PageResponse<StockMovementResponse> | null;
   error: string | null;
+  filters: StockReceiptHistoryFilters;
 }
 
 const PAGE_SIZE = 20;
@@ -74,15 +80,18 @@ const columns: ColumnsType<StockMovementResponse> = [
 export default function StockReceiptHistory({
   token,
   refreshVersion,
+  ingredients,
+  packaged,
 }: Props) {
   const [page, setPage] = useState(0);
   const [retry, setRetry] = useState(0);
   const [result, setResult] = useState<Result | null>(null);
+  const [filters, setFilters] = useState<StockReceiptHistoryFilters>({});
 
   useEffect(() => {
     const controller = new AbortController();
 
-    getStaffReceiptHistory(token, page, PAGE_SIZE, controller.signal)
+    getStaffReceiptHistory(token, page, PAGE_SIZE, controller.signal, filters)
       .then((data) => {
         if (controller.signal.aborted) return;
 
@@ -93,6 +102,7 @@ export default function StockReceiptHistory({
           retry,
           data,
           error: null,
+          filters,
         });
       })
       .catch((error: unknown) => {
@@ -105,22 +115,30 @@ export default function StockReceiptHistory({
           retry,
           data: null,
           error: staffErrorMessage(error),
+          filters,
         });
       });
 
     return () => controller.abort();
-  }, [token, page, refreshVersion, retry]);
+  }, [token, page, refreshVersion, retry, filters]);
 
   const current =
     result?.token === token &&
     result.page === page &&
     result.version === refreshVersion &&
-    result.retry === retry
-      ? result
-      : null;
+    result.retry === retry &&
+    result?.filters === filters ? result : null;
 
   return (
     <section aria-label="Lịch sử nhập kho">
+      <StockReceiptFilters
+        ingredients={ingredients}
+        packaged={packaged}
+        onApply={(nextFilters) => {
+          setPage(0);
+          setFilters(nextFilters);
+        }}
+      />
       {current?.error ? (
         <Alert
           type="error"

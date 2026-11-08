@@ -19,6 +19,18 @@ interface Result {
   error: string | null;
 }
 
+function InventoryTableColumns() {
+  return (
+    <colgroup>
+      <col style={{ width: "26%" }} />
+      <col style={{ width: "14%" }} />
+      <col style={{ width: "18%" }} />
+      <col style={{ width: "24%" }} />
+      <col style={{ width: "18%" }} />
+    </colgroup>
+  );
+}
+
 export default function StaffInventoryPage() {
   const [messageApi, contextHolder] = message.useMessage({ maxCount: 1 });
   const { session } = useStaffAuth();
@@ -117,8 +129,9 @@ export default function StaffInventoryPage() {
           <p className="mt-6">Chưa có nguyên liệu.</p>
         ) : (
           <div className="mt-6 overflow-x-auto rounded-xl border border-outline-variant bg-white">
-            <table className="w-full text-left text-sm">
+            <table className="w-full min-w-[760px] table-fixed break-words text-left text-sm">
               <caption className="sr-only">Kho nguyên liệu</caption>
+              <InventoryTableColumns />
               <thead className="bg-surface-container">
                 <tr>
                   <th scope="col" className="p-4">
@@ -171,12 +184,16 @@ export default function StaffInventoryPage() {
               <p className="text-sm">Chưa có hàng đóng gói.</p>
             ) : (
               <div className="overflow-x-auto rounded-xl border border-outline-variant bg-white">
-                <table className="w-full text-left text-sm">
+                <table className="w-full min-w-[760px] table-fixed break-words text-left text-sm">
                   <caption className="sr-only">Kho hàng đóng gói</caption>
+                  <InventoryTableColumns />
                   <thead className="bg-surface-container">
                     <tr>
                       <th scope="col" className="p-4">
                         Sản phẩm
+                      </th>
+                      <th scope="col" className="p-4">
+                        Đơn vị
                       </th>
                       <th scope="col" className="p-4">
                         Khả dụng
@@ -196,6 +213,7 @@ export default function StaffInventoryPage() {
                         className="border-t border-outline-variant"
                       >
                         <td className="p-4">{item.name}</td>
+                        <td className="p-4">{item.unit}</td>
                         <td className="p-4">
                           {item.stockQuantity?.toLocaleString("vi-VN") ??
                             "Chưa có dữ liệu"}
@@ -235,6 +253,8 @@ export default function StaffInventoryPage() {
               key={session.username}
               token={session.accessToken}
               refreshVersion={loadVersion}
+              ingredients={current?.items ?? []}
+              packaged={current?.packaged ?? []}
             />
           </Modal>
         )}

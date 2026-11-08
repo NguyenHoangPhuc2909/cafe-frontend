@@ -27,3 +27,9 @@ export interface StockMovementResponse {
   createdAt: string;
 }
 
+export interface StockReceiptHistoryFilters {
+  fromDate?: string;
+  toDate?: string;
+  ingredientId?: number;
+  productId?: number;
+}

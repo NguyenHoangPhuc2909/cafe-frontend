@@ -3,6 +3,7 @@ import { http } from "./http.ts";
 import type {
   StockMovementResponse,
   StockReceiptRequest,
+  StockReceiptHistoryFilters
 } from "../types/inventory.ts";
 
 export interface Ingredient {
@@ -16,6 +17,7 @@ export interface Ingredient {
 export interface PackagedStock {
   id: number;
   name: string;
+  unit: string;
   stockQuantity: number | null;
   isActive: boolean | null;
 }
@@ -101,12 +103,20 @@ export async function getStaffReceiptHistory(
   page = 0,
   size = 20,
   signal?: AbortSignal,
+  filters: StockReceiptHistoryFilters = {}
 ): Promise<PageResponse<StockMovementResponse>> {
   const { data } = await http.get<
     ApiResponse<PageResponse<StockMovementResponse>>
   >("/staff/inventory/receipts", {
     headers: { Authorization: `Bearer ${token}` },
-    params: { page, size },
+    params: { 
+      page, 
+      size,
+      fromDate: filters.fromDate || undefined,
+      toDate: filters.toDate || undefined,
+      ingredientId: filters.ingredientId,
+      productId: filters.productId,
+     },
     signal,
   });
 
