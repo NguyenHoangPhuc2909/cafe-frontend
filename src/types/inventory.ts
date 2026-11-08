@@ -16,10 +16,13 @@ export interface StockMovementResponse {
   type: 'RECEIPT' | 'STOCKTAKE_ADJUSTMENT';
   ingredientId: number | null;
   productId: number | null;
+  itemName: string;
+  unit: string;
   quantityDelta: number;
   availableBefore: number;
   availableAfter: number;
   performedById: number;
+  performedByName: string;
   note: string;
   createdAt: string;
 }

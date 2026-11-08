@@ -1,4 +1,4 @@
-import type { ApiResponse } from "../types/api.ts";
+import type { ApiResponse, PageResponse } from "../types/api.ts";
 import { http } from "./http.ts";
 import type {
   StockMovementResponse,
@@ -94,4 +94,25 @@ export async function receiveStaffStock(
   }
 
   return movement;
+}
+
+export async function getStaffReceiptHistory(
+  token: string,
+  page = 0,
+  size = 20,
+  signal?: AbortSignal,
+): Promise<PageResponse<StockMovementResponse>> {
+  const { data } = await http.get<
+    ApiResponse<PageResponse<StockMovementResponse>>
+  >("/staff/inventory/receipts", {
+    headers: { Authorization: `Bearer ${token}` },
+    params: { page, size },
+    signal,
+  });
+
+  if (!data.success || !data.data || !Array.isArray(data.data.content)) {
+    throw new Error(data.message || "Chưa tải được lịch sử nhập kho.");
+  }
+
+  return data.data;
 }

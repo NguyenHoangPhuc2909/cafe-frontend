@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { message } from "antd";
+import { Modal, message } from "antd";
 import { useStaffAuth } from "../../hooks/useStaffAuth";
 import {
   getStaffIngredients,
@@ -9,6 +9,7 @@ import {
 } from "../../services/staffInventory";
 import { staffErrorMessage } from "../../services/staffApi";
 import StockReceiptModal from "../../components/staff/StockReceiptModal";
+import StockReceiptHistory from "../../components/staff/StockReceiptHistory";
 
 interface Result {
   token: string;
@@ -25,6 +26,7 @@ export default function StaffInventoryPage() {
   const [result, setResult] = useState<Result | null>(null);
 
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [loadVersion, setLoadVersion] = useState(0);
 
   useEffect(() => {
@@ -81,16 +83,26 @@ export default function StaffInventoryPage() {
             <h1>Tồn kho</h1>
             <p>Theo dõi nguyên liệu và hàng đóng gói khả dụng trong quán.</p>
           </div>
-          <button
-            type="button"
-            disabled={!canReceive}
-            onClick={() => {
-              setReceiptOpen(true);
-            }}
-            className="min-h-control rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary disabled:opacity-40"
-          >
-            Nhập kho
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={!session}
+              onClick={() => setHistoryOpen(true)}
+              className="min-h-control rounded-xl border border-outline-variant bg-white px-4 text-sm font-semibold disabled:opacity-40"
+            >
+              Lịch sử nhập kho
+            </button>
+            <button
+              type="button"
+              disabled={!canReceive}
+              onClick={() => {
+                setReceiptOpen(true);
+              }}
+              className="min-h-control rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary disabled:opacity-40"
+            >
+              Nhập kho
+            </button>
+          </div>
         </div>
 
         {!current ? (
@@ -209,6 +221,22 @@ export default function StaffInventoryPage() {
               </div>
             )}
           </section>
+        )}
+
+        {historyOpen && session && (
+          <Modal
+            open
+            title="Lịch sử nhập kho"
+            footer={null}
+            width={1200}
+            onCancel={() => setHistoryOpen(false)}
+          >
+            <StockReceiptHistory
+              key={session.username}
+              token={session.accessToken}
+              refreshVersion={loadVersion}
+            />
+          </Modal>
         )}
 
         {receiptOpen && session && current && !current.error && (
