@@ -665,6 +665,55 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .revenue-detail-link { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; color: #8b735e; font-size: 12px; white-space: nowrap; cursor: pointer; }
 .revenue-detail-link .app-icon { font-size: 10px; }
 .revenue-transactions .ant-table-cell { vertical-align: middle; }
+.cash-modal { top: 24px; padding-bottom: 24px; }
+.cash-modal .ant-modal-body { max-height: calc(100dvh - 145px); overflow-y: auto; scrollbar-width: thin; }
+.cash-modal .ant-modal-header { margin-bottom: 20px; }
+.cash-modal-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding-bottom: 12px; position: sticky; top: 0; z-index: 2; background: white; border-bottom: 1px solid #edf0f3; }
+.cash-modal-toolbar .ant-radio-button-wrapper { font-size: 12px; }
+.cash-day-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; color: #8b929c; font-size: 11px; margin-bottom: 10px; }
+.cash-summary-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; }
+.cash-summary-grid > div { display: flex; flex-direction: column; gap: 8px; padding: 20px; border: 1px solid #e6e9ee; background: white; border-radius: 10px; }
+.cash-summary-grid > .cash-summary-main { background: #fbf3eb; border-color: #ecdbc9; }
+.cash-summary-grid span { color: #777f8c; font-size: 12px; }
+.cash-summary-grid strong { color: #393b42; font-size: 25px; font-variant-numeric: tabular-nums; }
+.cash-summary-grid small { font-size: 10px; color: #959aa3; }
+.cash-formula { display: flex; flex-wrap: wrap; gap: 12px 20px; padding: 14px 0; color: #8b929c; font-size: 11px; border-bottom: 1px solid #edf0f3; }
+.cash-formula b { margin-left: 5px; font-weight: 500; color: #596374; }
+.cash-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 14px; }
+.cash-section-heading h3, .cash-report-heading h3 { color: #393d46; font-size: 14px; font-weight: 600; }
+.cash-section-heading p { margin-top: 5px; color: #9298a2; font-size: 11px; }
+.cash-section-heading .ant-btn { font-size: 12px; }
+.cash-reconcile-form { margin-top: 22px; padding-top: 1px; border-top: 1px solid #e9e3dc; }
+.cash-count-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+.cash-reconcile-form label, .cash-entry-form label { display: block; color: #657080; font-size: 12px; }
+.cash-money-input { margin-top: 8px; height: 44px; border-radius: 8px; }
+.cash-money-input .ant-input { min-height: 0; border: 0; border-radius: 0; padding: 0; font-size: 17px; font-weight: 550; background: transparent; box-shadow: none; }
+.cash-money-input .ant-input-suffix { color: #9ba1aa; font-size: 12px; }
+.cash-count-result { display: flex; flex-direction: column; gap: 7px; padding: 12px 16px; border: 1px solid #e6e9ee; background: #f8f9fa; border-radius: 8px; }
+.cash-count-result > span { font-size: 11px; color: #848c97; }
+.cash-count-result strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.cash-match { color: #508261; }
+.cash-mismatch { color: #b27d36; }
+.cash-count-result.cash-match { background: #f2f8f3; border-color: #dcecdf; }
+.cash-count-result.cash-mismatch { background: #fff9ef; border-color: #f0e3ca; }
+.cash-count-note { margin-top: 16px; }
+.cash-count-note .ant-input, .cash-entry-form textarea { margin-top: 8px; border-radius: 8px; font-size: 13px; }
+.cash-form-actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 16px; }
+.cash-form-actions > span { margin-right: auto; }
+.cash-caption { font-size: 11px; line-height: 1.6; color: #9298a2; }
+.cash-form-title { display: flex; align-items: center; gap: 8px; color: #805b3e; }
+.cash-entry-form { display: flex; flex-direction: column; gap: 16px; padding-top: 16px; }
+.cash-entry-form .cash-form-actions { margin-top: 0; }
+.cash-report { padding: 12px 0; }
+.cash-report-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
+.cash-report-heading p { color: #9298a2; margin-top: 5px; font-size: 12px; }
+.cash-breakdown { margin: 20px 0 16px; border: 1px solid #e6e9ee; border-radius: 10px; overflow: hidden; }
+.cash-breakdown > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #edf0f3; font-size: 13px; }
+.cash-breakdown > div:last-child { border-bottom: 0; }
+.cash-breakdown dt { color: #7e8794; }
+.cash-breakdown dd { font-weight: 550; font-variant-numeric: tabular-nums; text-align: right; }
+.cash-breakdown-total { background: #fcf7f0; }
+.cash-report-note { padding: 12px; margin-bottom: 12px; border-radius: 8px; background: #f8f9fa; color: #657080; font-size: 12px; white-space: pre-wrap; }
 .stocktake-report { padding: 16px 0; color: #30323a; }
 .stocktake-report-heading { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
 .stocktake-report-heading h2 { font-size: 22px; font-weight: 650; }
@@ -681,6 +730,18 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .revenue-card-total { background: #fbf3eb; border-color: #e9d6c3; }
 @media (max-width: 767px) {
   .stocktake-modal { top: 12px; padding-bottom: 12px; }
+  .cash-modal { top: 12px; padding-bottom: 12px; }
+  .cash-modal .ant-modal-body { max-height: calc(100dvh - 140px); }
+  .cash-summary-grid { grid-template-columns: 1fr; gap: 8px; }
+  .cash-summary-grid > div { padding: 16px; }
+  .cash-summary-grid > div:not(.cash-summary-main) { display: grid; grid-template-columns: 1fr auto; align-items: center; }
+  .cash-summary-grid > div:not(.cash-summary-main) strong { font-size: 20px; }
+  .cash-summary-grid small { grid-column: 1 / -1; }
+  .cash-count-grid { grid-template-columns: 1fr; gap: 12px; }
+  .cash-form-actions { align-items: flex-end; }
+  .cash-form-actions > span { max-width: 145px; font-size: 10px; }
+  .cash-section-heading { align-items: flex-start; }
+  .cash-section-heading p { max-width: 175px; line-height: 1.6; }
   .stocktake-modal .ant-modal-body { max-height: calc(100dvh - 200px); }
   .stocktake-title h2 { font-size: 17px; }
   .stocktake-title-icon { width: 38px; height: 38px; }
