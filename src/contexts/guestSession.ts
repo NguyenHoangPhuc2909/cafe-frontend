@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import type { PageResponse } from '../types/api';
 import type {
   OrderAttempt,
   TableSessionResponse,
@@ -18,7 +19,8 @@ export interface GuestSessionValue {
     signal?: AbortSignal,
   ) => Promise<GuestOrderResponse>;
   submitOrder: () => Promise<GuestOrderResponse | null>;
-  dismissAttempt: () => void;
+  readOrders: (page: number, signal?: AbortSignal) => Promise<PageResponse<GuestOrderResponse>>;
+  dismissAttempt: () => boolean;
   resolveUnknownOrder: (wasCreated: boolean) => void;
 }
 

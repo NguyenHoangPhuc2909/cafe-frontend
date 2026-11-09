@@ -1,5 +1,10 @@
 import type { CafeTableResponse, TableSessionResponse } from './guest';
-import type { OrderPaymentStatus, OrderStatus } from './order';
+import type { OrderPaymentStatus, OrderStatus, OrderType } from './order';
+import type { GuestOrderRequest } from './guest';
+
+export interface StaffOrderRequest extends GuestOrderRequest {
+  orderType: OrderType;
+}
 
 export interface StaffSession {
   accessToken: string;

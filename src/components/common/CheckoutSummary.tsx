@@ -17,12 +17,19 @@ export default function CheckoutSummary({
       className={embedded ? "summary-content" : "rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-5 sm:p-6"}
     >
       {showHeading && <><p className="text-xs font-semibold uppercase tracking-wider text-secondary">
-        {order.tableName ?? 'Không gắn bàn'}
+        {order.tableName ?? 'Nhận món tại quầy'}
       </p>
 
       <h2 className="mt-2 text-lg font-bold text-primary">
         Đơn #{order.id}
       </h2></>}
+
+      {order.orderType && <p className="mt-2 text-sm font-semibold text-secondary">
+        {order.orderType === 'TAKEAWAY' ? 'Mang đi' : 'Tại quán'}
+      </p>}
+      {!order.tableName && <p className="mt-2 text-sm text-on-surface-variant">
+        Nhận món theo mã đơn #{order.id}.
+      </p>}
 
       <ul className={`${showHeading ? 'mt-5 ' : ''}space-y-4 text-sm`}>
         {order.items.map(item => (

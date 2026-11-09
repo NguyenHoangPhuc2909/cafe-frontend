@@ -1,29 +1,80 @@
-import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Icon from '../../components/ui/Icon';
 import { useCheckout } from '../../hooks/useCheckout';
 import { usePaymentCountdown } from '../../hooks/usePaymentCountdown';
 import CheckoutSummary from '../../components/common/CheckoutSummary';
 import CustomerFlowSteps from '../../components/common/CustomerFlowSteps';
 import { customerOrderPresentation } from '../../utils/customerOrderPresentation';
+import { useGuestSession } from '../../hooks/useGuestSession';
+import Pagination from '../../components/ui/Pagination';
+import { formatCurrency } from '../../utils/format';
+import { useState } from 'react';
+import { Drawer, Grid } from 'antd';
 
 export default function CheckoutPage() {
-  const { order, startNewOrder, error } = useCheckout();
+  const { order, orders, page, totalPages, setPage, selectOrder, isLoadingOrders,
+    reloadOrders, startNewOrder, error } = useCheckout();
+  const { isSubmitting, isChecking, attempt } = useGuestSession();
   const navigate = useNavigate();
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const screens = Grid.useBreakpoint();
   const deadline = order ? Date.parse(order.paymentExpiresAt) : undefined;
   const { countdown, remainingSeconds } = usePaymentCountdown(deadline);
-  if (!order) return <Navigate to="/cart" replace />;
+  if (!order) return <div className="customer-flow-page">
+    <h1 className="text-2xl font-bold text-primary">Các đơn đã gọi</h1>
+    {isLoadingOrders ? <p role="status" className="my-4">Đang tải đơn của phiên bàn…</p>
+      : <p className="my-4">Chưa có đơn để hiển thị trong trang này.</p>}
+    {error && <p role="alert" className="my-4 text-error">{error}</p>}
+    <button type="button" onClick={reloadOrders} className="ui-button">Tải lại đơn</button>
+    {totalPages > 1 && <Pagination page={page} totalPages={totalPages} disabled={isLoadingOrders} onPageChange={setPage} />}
+    <Link to="/cart" className="ui-button mt-4">Về giỏ hàng</Link>
+  </div>;
 
   const view = customerOrderPresentation(order);
   const pending = view.kind === 'pending';
-  const canChooseMore = order.paymentStatus === 'PAID' || order.status === 'EXPIRED';
+  const canChooseMore = !isSubmitting && !isChecking &&
+    (!attempt || attempt.state === 'success');
   const chooseMore = () => { if (startNewOrder()) navigate('/'); };
 
   return <div className="customer-flow-page">
     <CustomerFlowSteps current={view.step} status={view.stepStatus} />
     <header className="customer-page-heading">
       <div><h1>Đơn hàng của bạn</h1><p>Đơn #{order.id}<span className="customer-meta-dot">·</span>{order.tableName}</p></div>
-      <Link to="/" className="customer-text-link"><Icon name="arrow_back" />Về thực đơn</Link>
+      <div className="customer-checkout-actions">
+        {(orders.length > 1 || totalPages > 1) && <button type="button"
+          onClick={() => setHistoryOpen(true)} className="customer-orders-trigger">
+          <Icon name="history" />Các đơn đã gọi
+        </button>}
+        <Link to="/" className="customer-text-link"><Icon name="arrow_back" />Về thực đơn</Link>
+      </div>
     </header>
+
+    <Drawer title="Các đơn đã gọi" open={historyOpen} onClose={() => setHistoryOpen(false)}
+      placement={screens.md ? 'right' : 'bottom'} size={screens.md ? 400 : 'auto'}
+      styles={{ wrapper: screens.md ? {} : { maxHeight: '85dvh' }, body: { padding: 20 } }}>
+      <p className="customer-orders-hint">Chọn đơn để xem chi tiết và trạng thái.</p>
+      <div className="customer-orders-list">
+        {orders.map(value => {
+          const status = customerOrderPresentation(value);
+          const active = order.id === value.id;
+          return <button type="button" key={value.id} aria-pressed={active}
+            className="customer-order-choice" onClick={() => { selectOrder(value.id); setHistoryOpen(false); }}>
+            <span className="customer-order-choice__top">
+              <strong>Đơn #{value.id}</strong>
+              <span className={`customer-order-choice__status customer-order-choice__status--${status.tone}`}>
+                {status.label}
+              </span>
+            </span>
+            <span className="customer-order-choice__bottom">
+              <span>{value.items.reduce((count, item) => count + item.quantity, 0)} món</span>
+              <strong>{formatCurrency(value.totalAmount)}</strong>
+            </span>
+            {active && <span className="customer-order-choice__selected"><Icon name="check" />Đang xem</span>}
+          </button>;
+        })}
+      </div>
+      {totalPages > 1 && <Pagination page={page} totalPages={totalPages} disabled={isLoadingOrders} onPageChange={setPage} />}
+    </Drawer>
 
     <section className={`customer-order-banner customer-order-banner--${view.tone}`} aria-live="polite">
       <span className="customer-order-banner__icon"><Icon name={view.icon} /></span>

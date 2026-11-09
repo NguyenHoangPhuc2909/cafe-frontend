@@ -14,7 +14,7 @@ test('login return paths cannot escape Staff routes or loop back to login', () =
   for (const path of [undefined, null, {}, '', 'https://elsewhere.test/staff', '//elsewhere.test/staff',
     '/staffing', '/cart', '/staff/../../cart', '/staff\\orders', '/staff/orders\n',
     '/staff/login', '/staff/LOGIN/?from=pos', '/staff/login//', '/staff/%6cogin', '/staff/%broken']) {
-    assert.equal(staffReturnPath(path), '/staff/orders', String(path));
+    assert.equal(staffReturnPath(path), '/staff/pos', String(path));
   }
 });
 

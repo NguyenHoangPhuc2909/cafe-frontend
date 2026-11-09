@@ -6,19 +6,13 @@ import { getTable, guestErrorMessage } from '../../services/guest';
 import { useGuestSession } from '../../hooks/useGuestSession';
 import { useCustomerCart } from '../../hooks/useCustomerCart';
 import type { CafeTableResponse } from '../../types/guest';
-import { useCheckout } from '../../hooks/useCheckout';
 
 function TableAccess({ qrCode }: { qrCode: string }) {
   const navigate = useNavigate();
   const { connectTable, isChecking, session, attempt } = useGuestSession();
   const { itemCount } = useCustomerCart();
-  const { order } = useCheckout();
   const [table, setTable] = useState<CafeTableResponse | null>(null);
-  const canConnect = !attempt || (
-    attempt.state === 'success'
-    && order !== null
-    && table?.id === order.tableId
-  );
+  const canConnect = !attempt || attempt.state === 'success';
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
@@ -37,7 +31,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
     setConnecting(true); setError(null);
     try {
       await connectTable(qrCode);
-      navigate(order ? '/checkout' : '/', { replace: true });
+      navigate('/', { replace: true });
     }
     catch (error) { setError(guestErrorMessage(error)); }
     finally { setConnecting(false); }
@@ -57,10 +51,10 @@ function TableAccess({ qrCode }: { qrCode: string }) {
       {session && itemCount > 0 && <p className="mt-4 text-sm text-on-surface-variant">Bạn đang chọn món cho {session.tableName}. Nếu chuyển sang bàn hoặc phiên phục vụ khác, giỏ hiện tại sẽ được xóa sau khi kết nối thành công.</p>}
       {!canConnect ? (
   <Link
-    to={order ? '/checkout' : '/cart'}
+    to="/cart"
     className="ui-button ui-button--primary mt-6 w-full"
   >
-    Xem đơn hiện tại trước khi chọn bàn
+    Kiểm tra kết quả gửi đơn trước khi chọn bàn
   </Link>
 ) : (
   <button
@@ -70,8 +64,8 @@ function TableAccess({ qrCode }: { qrCode: string }) {
   >
     {connecting
       ? 'Đang vào bàn…'
-      : order
-        ? 'Xác nhận lại phiên bàn'
+      : session?.tableId === table.id
+        ? 'Tiếp tục đặt món'
         : `Bắt đầu đặt món · ${table.name}`}
   </button>
 )}

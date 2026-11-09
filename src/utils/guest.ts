@@ -14,6 +14,19 @@ const validDate = (value: unknown): value is string =>
 const object = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === "object";
 
+export function selectGuestOrder(
+  orderId: number | undefined,
+  sessionId: number | null,
+  orders: GuestOrderResponse[],
+  latest: GuestOrderResponse | null,
+  stored: GuestOrderResponse | null,
+): GuestOrderResponse | null {
+  if (orderId === undefined || sessionId === null) return null;
+  if (latest && latest.id === orderId && latest.sessionId === sessionId) return latest;
+  return orders.find(order => order.id === orderId && order.sessionId === sessionId) ??
+    (stored && stored.id === orderId && stored.sessionId === sessionId ? stored : null);
+}
+
 export function isTableAccess(value: unknown): value is TableAccess {
   return (
     object(value) &&

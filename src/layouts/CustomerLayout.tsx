@@ -53,9 +53,7 @@ function CustomerShell() {
               to="/checkout"
               className="customer-text-link"
             >
-              {order.paymentStatus === "PAID"
-                ? "Xem đơn đã thanh toán"
-                : "Xem trạng thái đơn"}
+              Xem các đơn đã gọi
             </Link>
           )}
         </div>

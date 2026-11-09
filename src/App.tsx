@@ -33,11 +33,6 @@ function App() {
             path="order-status"
             element={<Navigate to="/checkout" replace />}
           />
-          <Route
-            path="checkout-demo"
-            element={<Navigate to="/checkout" replace />}
-          />
-          {/* Các trang con khác của Customer sẽ nằm ở đây (VD: /cart) */}
         </Route>
 
         {/* Cụm Route dành cho Nhân viên/Quản lý */}
@@ -51,7 +46,7 @@ function App() {
           <Route path="/staff/login" element={<StaffLoginPage />} />
           <Route element={<RequireStaffAuth />}>
             <Route path="/staff" element={<StaffLayout />}>
-              <Route index element={<Navigate to="orders" replace />} />
+              <Route index element={<Navigate to="pos" replace />} />
               <Route element={<RequireOrderStaff />}>
                 <Route path="pos" element={<POSPage />} />
               </Route>
@@ -68,7 +63,7 @@ function App() {
               <Route path="inventory" element={<StaffInventoryPage />} />
               <Route
                 path="*"
-                element={<Navigate to="/staff/orders" replace />}
+                element={<Navigate to="/staff/pos" replace />}
               />
             </Route>
           </Route>

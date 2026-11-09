@@ -41,7 +41,6 @@ export default function StaffPaymentPanel({ order, onChanged, embedded = false }
     !paid &&
     order.status === "PENDING" &&
     order.paymentStatus === "UNPAID" &&
-    order.sessionId !== null &&
     remainingSeconds > 0 &&
     Number.isFinite(order.totalAmount) &&
     order.totalAmount >= 0;

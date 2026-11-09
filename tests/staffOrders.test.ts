@@ -9,6 +9,7 @@ import {
   getStaffOrders,
   getStaffOrder,
   confirmStaffPayment,
+  createStaffOrder,
 } from '../src/services/staffApi.ts';
 import { http } from '../src/services/http.ts';
 
@@ -197,4 +198,59 @@ test('lỗi 409 được trả lại và không tự gửi thanh toán thêm l�
   );
 
   assert.equal(calls, 1);
+});
+
+test('POS tạo đơn tại quầy bằng JWT Staff, không gửi giá hay tài khoản', async t => {
+  const request = { items: [{ productId: 12, quantity: 2 }], note: 'Mang đi', orderType: 'TAKEAWAY' as const };
+  mockApi(t, config => {
+    assert.equal(config.method, 'post');
+    assert.equal(config.url, '/staff/orders');
+    assert.equal(config.headers.get('Authorization'), `Bearer ${token}`);
+    assert.equal(config.headers.get('X-Table-Session-Token'), undefined);
+    assert.deepEqual(JSON.parse(config.data), request);
+    return { ...order, sessionId: null, tableId: null, tableName: null, orderType: 'TAKEAWAY' };
+  });
+  const result = await createStaffOrder(token, request);
+  assert.equal(result.sessionId, null);
+  assert.equal(result.totalAmount, 30000);
+});
+
+test('POS tại quán giữ tùy chọn món và bỏ mọi sessionId cũ khỏi request', async t => {
+  const request = {
+    sessionId: 7, note: '', orderType: 'DINE_IN' as const,
+    items: [{ productId: 12, quantity: 1, size: 'L' as const, iceLevel: 'LESS' as const }],
+  };
+  mockApi(t, config => {
+    assert.deepEqual(JSON.parse(config.data), {
+      items: request.items, note: request.note, orderType: request.orderType,
+    });
+    return { ...order, sessionId: null, tableId: null, tableName: null, orderType: 'DINE_IN' };
+  });
+  assert.equal((await createStaffOrder(token, request)).sessionId, null);
+});
+
+test('POS không nhận thành công nếu đơn thuộc phiên khác', async t => {
+  mockApi(t, () => order);
+  await assert.rejects(createStaffOrder(token, {
+    items: [{ productId: 12, quantity: 1 }], note: '', orderType: 'DINE_IN',
+  }), /Chưa xác nhận được kết quả tạo đơn/);
+});
+
+test('POS không tự gửi lại khi mất phản hồi tạo đơn', async t => {
+  let calls = 0;
+  mockApi(t, config => {
+    calls++;
+    throw new AxiosError('timeout', 'ECONNABORTED', config);
+  });
+  await assert.rejects(createStaffOrder(token, {
+    items: [{ productId: 12, quantity: 1 }], note: '', orderType: 'TAKEAWAY',
+  }));
+  assert.equal(calls, 1);
+});
+
+test('POS từ chối phản hồi đổi sai hình thức phục vụ', async t => {
+  mockApi(t, () => ({ ...order, sessionId: null, tableId: null, orderType: 'DINE_IN' }));
+  await assert.rejects(createStaffOrder(token, {
+    items: [{ productId: 12, quantity: 1 }], note: '', orderType: 'TAKEAWAY',
+  }), /Chưa xác nhận được kết quả tạo đơn/);
 });

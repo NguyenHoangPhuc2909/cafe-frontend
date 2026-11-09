@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { AxiosError, AxiosHeaders } from 'axios';
 import { filterStaffTables, restoreStaffSession, tableState, toStaffSession, toStaffTable } from '../src/utils/staffTables.ts';
-import { getStaffCurrentSession, getStaffTableOverview, getStaffTables, openStaffTableSession, signInStaff } from '../src/services/staffApi.ts';
+import { closeStaffTableSession, getStaffCurrentSession, getStaffTableOverview, getStaffTables, signInStaff } from '../src/services/staffApi.ts';
 import { http } from '../src/services/http.ts';
 import type { StaffTableOverview } from '../src/types/staffApi.ts';
 
@@ -52,8 +52,7 @@ test('login and Staff APIs use separate account authentication and preserve the 
   const account = await signInStaff(' staff ', ' password with spaces ');
   assert.equal((await getStaffTables(account.accessToken))[0].id, 3);
   assert.equal((await getStaffCurrentSession(account.accessToken, 3))?.id, 7);
-  assert.equal((await openStaffTableSession(account.accessToken, 3)).id, 7);
-  assert.deepEqual(calls, ['post /auth/login', 'get /staff/tables', 'get /staff/tables/3/sessions/current', 'post /staff/tables/3/sessions']);
+  assert.deepEqual(calls, ['post /auth/login', 'get /staff/tables', 'get /staff/tables/3/sessions/current']);
 });
 
 test('only the documented no-open-session 404 is treated as an idle table', async t => {
@@ -90,4 +89,38 @@ test('duplicate table IDs, mismatched sessions and denied access cannot become v
   await assert.rejects(getStaffCurrentSession('fake-test-token', 3));
   http.defaults.adapter = async () => { const config = { headers: new AxiosHeaders() }; throw new AxiosError('denied', undefined, config, undefined, { config, status: 403, statusText: '', headers: {}, data: {} }); };
   await assert.rejects(getStaffTableOverview('fake-test-token'));
+});
+
+test('closing addresses the exact session and validates a server-confirmed close', async t => {
+  const previous = http.defaults.adapter;
+  t.after(() => { http.defaults.adapter = previous; });
+  const closed = { ...session, status: 'CLOSE', closedAt: '2026-11-09T17:00:00' };
+  http.defaults.adapter = async config => {
+    assert.equal(config.method, 'patch');
+    assert.equal(config.url, '/staff/tables/3/sessions/7/close');
+    assert.equal(config.headers.get('Authorization'), 'Bearer staff-token');
+    assert.equal(config.data, undefined);
+    return { config, status: 200, statusText: 'OK', headers: {}, data: { success: true, data: closed } };
+  };
+  assert.equal((await closeStaffTableSession('staff-token', 3, 7)).status, 'CLOSE');
+  for (const invalid of [session, { ...closed, id: 8 }, { ...closed, tableId: 4 }, { ...closed, closedAt: null }]) {
+    http.defaults.adapter = async config => ({ config, status: 200, statusText: 'OK', headers: {}, data: { success: true, data: invalid } });
+    await assert.rejects(closeStaffTableSession('staff-token', 3, 7), /Chưa xác nhận được kết quả kết thúc phiên/);
+  }
+});
+
+test('active orders prevent closing and the client does not retry automatically', async t => {
+  const previous = http.defaults.adapter;
+  t.after(() => { http.defaults.adapter = previous; });
+  let calls = 0;
+  http.defaults.adapter = async config => {
+    calls++;
+    throw new AxiosError('Conflict', undefined, config, undefined, {
+      config, status: 409, statusText: 'Conflict', headers: {},
+      data: { message: 'Chưa thể kết thúc phiên: còn đơn chờ thanh toán hoặc đang chuẩn bị' },
+    });
+  };
+  await assert.rejects(closeStaffTableSession('staff-token', 3, 7), cause =>
+    cause instanceof AxiosError && cause.response?.status === 409);
+  assert.equal(calls, 1);
 });

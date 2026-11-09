@@ -21,7 +21,7 @@ export interface TableSessionResponse {
   id: number;
   tableId: number;
   tableName: string;
-  status: 'OPEN' | 'CLOSED';
+  status: 'OPEN' | 'CLOSE';
   openedAt: string;
   closedAt: string | null;
 }

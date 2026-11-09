@@ -1,4 +1,4 @@
-import { Drawer, Grid } from 'antd';
+import { Drawer, Grid, Popconfirm } from 'antd';
 import Icon from '../../components/ui/Icon';
 import { Skeleton, TablesSkeleton } from "../../components/ui/Skeleton";
 import { useRef, useState } from "react";
@@ -8,7 +8,7 @@ import { useStaffTables } from "../../hooks/useStaffTables";
 import { filterStaffTables, tableState } from "../../utils/staffTables";
 import type { StaffTableFilter } from "../../types/staffApi";
 import {
-  openStaffTableSession,
+  closeStaffTableSession,
   staffErrorMessage,
 } from "../../services/staffApi";
 import { useStaffOrders } from "../../hooks/useStaffOrders";
@@ -51,8 +51,8 @@ export default function StaffTablesPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [notice, setNotice] = useState("");
-  const [isOpening, setIsOpening] = useState(false);
-  const opening = useRef(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const closing = useRef(false);
   const visible = filterStaffTables(rows, filter, query);
   const selected =
     visible.find((row) => row.table.id === selectedId) ?? visible[0] ?? null;
@@ -66,34 +66,19 @@ export default function StaffTablesPage() {
     size: 1,
   });
 
-  const open = async () => {
-    if (
-      !session ||
-      !selected ||
-      tableState(selected) !== "idle" ||
-      opening.current ||
-      isLoading
-    )
-      return;
-    opening.current = true;
-    setIsOpening(true);
-    setNotice("");
+  const close = async () => {
+    if (!session || !selected?.session || closing.current || isLoading) return;
+    closing.current = true;
+    setIsClosing(true);
+    setNotice('');
     try {
-      const opened = await openStaffTableSession(
-        session.accessToken,
-        selected.table.id,
-      );
-      setNotice(
-        `Đã mở phiên #${opened.id} cho ${selected.table.name}. Khách có thể dùng QR của bàn.`,
-      );
+      await closeStaffTableSession(session.accessToken, selected.table.id, selected.session.id);
+      setNotice(`Đã kết thúc phiên #${selected.session.id} của ${selected.table.name}. Bàn sẵn sàng đón lượt khách mới.`);
     } catch (cause) {
-      setNotice(
-        staffErrorMessage(cause) +
-          " Sơ đồ sẽ được tải lại để đối chiếu kết quả.",
-      );
+      setNotice(`${staffErrorMessage(cause)} Sơ đồ sẽ được tải lại để đối chiếu kết quả.`);
     } finally {
-      opening.current = false;
-      setIsOpening(false);
+      closing.current = false;
+      setIsClosing(false);
       reload();
     }
   };
@@ -155,24 +140,26 @@ export default function StaffTablesPage() {
                         >
                           Lịch sử phiên hiện tại
                         </Link>
+                        <div className="mt-5 border-t border-outline-variant/30 pt-4">
+                          <p className="mb-3 text-xs leading-relaxed text-on-surface-variant">
+                            Kết thúc phiên sau khi khách rời bàn. Các đơn phải hoàn thành hoặc đã hết hạn.
+                          </p>
+                          <Popconfirm title={`Kết thúc phiên của ${selected.table.name}?`}
+                            description="Xác nhận khách đã rời bàn. Quyền đặt món của phiên này sẽ kết thúc."
+                            okText="Khách đã rời bàn" cancelText="Quay lại"
+                            onConfirm={close} disabled={isClosing || isLoading}>
+                            <button type="button" disabled={isClosing || isLoading}
+                              className="ui-button w-full border-error/30 text-error">
+                              {isClosing ? 'Đang kết thúc phiên…' : 'Kết thúc phiên'}
+                            </button>
+                          </Popconfirm>
+                        </div>
                       </>
                     )}
                     {tableState(selected) === "idle" && (
                       <div className="mt-5">
                         <p className="text-sm leading-relaxed text-on-surface-variant">
-                          Mở phiên phục vụ để khách tại bàn có thể nhận token QR
-                          và bắt đầu đặt món.
-                        </p>
-                        <button
-                          type="button"
-                          disabled={isOpening || isLoading}
-                          onClick={() => void open()}
-                          className="mt-4 min-h-control w-full rounded-xl bg-primary px-4 font-semibold text-on-primary disabled:opacity-40"
-                        >
-                          {isOpening ? "Đang mở phiên…" : "Mở phiên phục vụ"}
-                        </button>
-                        <p className="mt-2 text-xs text-on-surface-variant">
-                          Thao tác này mở phiên thật trong DB.
+                          Khách quét QR và xác nhận bàn để bắt đầu đặt món. Phiên phục vụ sẽ tự mở khi khách xác nhận.
                         </p>
                       </div>
                     )}
@@ -283,7 +270,7 @@ export default function StaffTablesPage() {
                         <button
                           type="button"
                           key={row.table.id}
-                          disabled={isOpening || isLoading}
+                          disabled={isClosing || isLoading}
                           onClick={() => { setSelectedId(row.table.id); if (!desktop) setDetailOpen(true); }}
                           aria-pressed={selected?.table.id === row.table.id}
                           className="table-tile"

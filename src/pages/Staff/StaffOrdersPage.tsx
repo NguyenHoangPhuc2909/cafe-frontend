@@ -14,6 +14,7 @@ import { formatCurrency } from "../../utils/format";
 import { formatDrinkOptions } from '../../utils/drinkOptions';
 import CheckoutSummary from "../../components/common/CheckoutSummary";
 import CompleteOrderButton from "../../components/staff/CompleteOrderButton";
+import StaffOrderDrawer from '../../components/staff/StaffOrderDrawer';
 
 type Filter = "all" | "unpaid" | "paid" | "expired";
 type ViewMode = "orders" | "kitchen" | "history";
@@ -50,6 +51,14 @@ export default function StaffOrdersPage({
   const history = mode === "history";
   const { session } = useStaffAuth();
   const [params, setParams] = useSearchParams();
+  const rawFocusedOrder = Number(params.get('order'));
+  const focusedOrderId = Number.isSafeInteger(rawFocusedOrder) && rawFocusedOrder > 0
+    ? rawFocusedOrder : null;
+  const closeFocusedOrder = () => {
+    const next = new URLSearchParams(params);
+    next.delete('order');
+    setParams(next, { replace: true });
+  };
   const scrollRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [notice, setNotice] = useState<{
@@ -134,6 +143,12 @@ export default function StaffOrdersPage({
   const loadingFirstPage = isLoading && !data;
 
   return <div className="staff-orders-page">
+    {focusedOrderId !== null && <StaffOrderDrawer
+      key={`${session?.username}:${focusedOrderId}`}
+      orderId={focusedOrderId}
+      onClose={closeFocusedOrder}
+      onChanged={paymentChanged}
+    />}
     <div ref={scrollRef} className="staff-page-scroll">
       <div className="staff-page-content">
         <header className="staff-page-heading">
@@ -164,7 +179,7 @@ export default function StaffOrdersPage({
             {loadingFirstPage ? <OrderListSkeleton /> : <>
               <div className="order-collection__heading"><h2>Danh sách đơn</h2><span>{orders.length} đơn trên trang</span></div>
               <div>{orders.map(order => <button type="button" key={order.id} onClick={() => { setSelectedId(order.id); if (!desktop) setDetailOpen(true); }} aria-pressed={selected?.id === order.id} className="order-row">
-                <div className="order-row__main"><strong>#{order.id}</strong><span className="order-row__table"><Icon name="table_restaurant" />{order.tableName ?? 'Tại quầy'}</span></div>
+                <div className="order-row__main"><strong>#{order.id}</strong><span className="order-row__table"><Icon name={order.tableName ? 'table_restaurant' : 'receipt_long'} />{order.tableName ?? 'Tại quầy'}{order.orderType && ` · ${order.orderType === 'TAKEAWAY' ? 'Mang đi' : 'Tại quán'}`}</span></div>
                 <span className={`order-status order-status--${order.status.toLowerCase()}`}>{orderStatusLabel(order)}</span>
                 <p className="order-row__items">{order.items.map(item => `${item.quantity} × ${item.productName}${item.size ? ` (${item.size})` : ''}${formatDrinkOptions(item) ? ` — ${formatDrinkOptions(item)}` : ''}`).join(' · ') || 'Chưa có món'}</p>
                 <strong className="order-row__amount">{formatCurrency(order.totalAmount)}</strong>

@@ -18,12 +18,15 @@ interface OrderTicketProps {
   onClear:     () => void;
   onCheckout:  () => void;
   checkoutDisabled?: boolean;
+  submitting?: boolean;
+  editingDisabled?: boolean;
 }
 
 const OrderTicket: React.FC<OrderTicketProps> = ({
   cart, orderMode,
   subtotal, total, itemCount,
   onSetMode, onUpdateQty, onRemove, onClear, onCheckout, checkoutDisabled = false,
+  submitting = false, editingDisabled = false,
 }) => {
   const nowStr = (() => {
     const d = new Date();
@@ -55,12 +58,13 @@ const OrderTicket: React.FC<OrderTicketProps> = ({
           </div>
         </div>
 
-        {/* Order type + table */}
+        {/* Serving type and pickup */}
         <div className="flex flex-wrap items-center gap-2">
           <div className="min-w-48 flex-1 flex items-center gap-1 p-1 bg-surface-container-low rounded-xl border border-outline-variant/30">
             {(['dinein', 'takeaway'] as const).map(mode => (
               <button
                 key={mode}
+                disabled={editingDisabled}
                 onClick={() => onSetMode(mode)}
                 aria-pressed={orderMode === mode}
                 className={`flex-1 flex items-center justify-center gap-1.5 min-h-control py-2 rounded-lg
@@ -80,11 +84,11 @@ const OrderTicket: React.FC<OrderTicketProps> = ({
           <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary-fixed
             border border-outline-variant/40">
             <span aria-hidden="true" className="icon-slot text-secondary text-[16px]"
-              ><Icon name="table_restaurant" /></span>
+              ><Icon name="receipt_long" /></span>
             <div className="leading-none">
-              <p className="text-[8px] font-label-caps text-on-surface-variant">Vị trí</p>
+              <p className="text-[8px] font-label-caps text-on-surface-variant">Nhận món theo mã đơn</p>
               <p className="text-[13px] font-bold text-on-surface">
-                {orderMode === 'dinein' ? 'Chưa chọn bàn' : 'Quầy nhận'}
+                Tại quầy
               </p>
             </div>
           </div>
@@ -128,7 +132,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({
               <div className="flex items-center justify-between">
                 <QuantityStepper
                   quantity={item.quantity}
-                  disabled={item.isAvailable === false}
+                  disabled={editingDisabled || item.isAvailable === false}
                   onChange={(newQty) => onUpdateQty(item.id, newQty - item.quantity)}
                   size="sm"
                 />
@@ -137,6 +141,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({
                   className="inline-flex min-h-control items-center justify-center gap-1 px-2.5 py-2 rounded-lg text-on-surface-variant
                     hover:text-error hover:bg-error-container/30 text-[10px] font-label-caps transition-colors"
                   onClick={() => onRemove(item.id)}
+                  disabled={editingDisabled}
                 >
                   <span aria-hidden="true" className="icon-slot text-[13px]"><Icon name="delete" /></span>
                   Xoá
@@ -173,6 +178,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({
         <div>
           <button
             onClick={onClear}
+            disabled={editingDisabled}
             className="min-h-control w-full rounded-xl border border-error/30 bg-error-container/20
               font-label-caps text-[11px] font-semibold text-error
               flex items-center justify-center gap-1.5
@@ -188,7 +194,7 @@ const OrderTicket: React.FC<OrderTicketProps> = ({
           disabled={cart.length === 0 || checkoutDisabled || cart.some(item => item.isAvailable === false)}
           className="ui-button ui-button--primary min-h-control w-full"
         >
-          <span>Thanh toán</span>
+          <span>{submitting ? 'Đang tạo đơn…' : 'Tạo đơn và thanh toán'}</span>
           <span aria-hidden="true" className="icon-slot text-[22px]"
             ><Icon name="payments" /></span>
         </button>

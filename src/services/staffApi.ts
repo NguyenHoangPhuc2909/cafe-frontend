@@ -1,7 +1,11 @@
 import axios from "axios";
 import type { ApiResponse, PageResponse } from "../types/api.ts";
 import type { TableSessionResponse } from "../types/guest.ts";
-import type { StaffTableOverview, StaffOrderQuery } from "../types/staffApi.ts";
+import type {
+  StaffTableOverview,
+  StaffOrderQuery,
+  StaffOrderRequest,
+} from "../types/staffApi.ts";
 import type { OrderResponse } from "../types/order.ts";
 import { toStaffSession, toStaffTable } from "../utils/staffTables.ts";
 import { http } from "./http.ts";
@@ -71,7 +75,7 @@ export function staffErrorMessage(error: unknown) {
     if (error.response?.status === 403) {
       return "Bạn không có quyền thực hiện thao tác này.";
     }
-    
+
     return "Chưa kết nối được BE. Vui lòng thử lại.";
   }
   return error instanceof Error
@@ -143,24 +147,18 @@ export async function getStaffTableOverview(
   return rows;
 }
 
-export async function openStaffTableSession(token: string, tableId: number) {
-  const { data } = await http.post<ApiResponse<TableSessionResponse>>(
-    `/staff/tables/${tableId}/sessions`,
+export async function closeStaffTableSession(token: string, tableId: number, sessionId: number) {
+  const { data } = await http.patch<ApiResponse<TableSessionResponse>>(
+    `/staff/tables/${tableId}/sessions/${sessionId}/close`,
     undefined,
     { headers: headers(token) },
   );
-  const session = unwrap(data);
-  if (
-    !Number.isSafeInteger(session.id) ||
-    session.id < 1 ||
-    session.tableId !== tableId ||
-    session.status !== "OPEN"
-  ) {
-    throw new Error(
-      "Chưa xác nhận được kết quả mở phiên. Vui lòng tải lại sơ đồ bàn trước khi thử lại.",
-    );
+  const result = unwrap(data);
+  if (result.id !== sessionId || result.tableId !== tableId || result.status !== 'CLOSE' ||
+      !result.closedAt || !Number.isFinite(Date.parse(result.closedAt))) {
+    throw new Error('Chưa xác nhận được kết quả kết thúc phiên. Vui lòng tải lại sơ đồ bàn.');
   }
-  return session;
+  return result;
 }
 
 export async function getStaffOrders(
@@ -286,6 +284,41 @@ export async function completeStaffOrder(
   ) {
     throw new Error(
       "Chưa xác nhận được kết quả hoàn thành. Vui lòng tải lại đơn.",
+    );
+  }
+
+  return order;
+}
+
+export async function createStaffOrder(
+  token: string,
+  request: StaffOrderRequest,
+): Promise<OrderResponse> {
+  const { data } = await http.post<ApiResponse<OrderResponse>>(
+    "/staff/orders",
+    { items: request.items, note: request.note, orderType: request.orderType },
+    { headers: headers(token) },
+  );
+
+  const order = unwrap(data);
+
+  if (
+    !Number.isSafeInteger(order.id) ||
+    order.id <= 0 ||
+    order.status !== "PENDING" ||
+    order.paymentStatus !== "UNPAID" ||
+    !Array.isArray(order.items) ||
+    order.items.length === 0 ||
+    !Number.isFinite(order.totalAmount) ||
+    order.totalAmount < 0 ||
+    !order.paymentExpiresAt ||
+    !Number.isFinite(Date.parse(order.paymentExpiresAt)) ||
+    order.sessionId !== null ||
+    order.tableId !== null ||
+    order.orderType !== request.orderType
+  ) {
+    throw new Error(
+      "Chưa xác nhận được kết quả tạo đơn. Kiểm tra danh sách đơn trước khi gửi lại.",
     );
   }
 
