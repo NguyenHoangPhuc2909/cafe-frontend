@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import axios, { AxiosError, AxiosHeaders } from 'axios';
-import { buildGuestOrder, isGuestOrder, restoreOrderAttempt, restoreTableAccess, subtractSubmittedItems } from '../src/utils/guest.ts';
-import { createGuestOrder, getGuestSession, getTable, grantTableAccess, guestErrorMessage, isOrderDefinitelyRejected } from '../src/services/guest.ts';
+import { buildGuestOrder, isGuestOrder, restoreOrderAttempt, restoreTableAccess, subtractSubmittedItems, selectGuestOrder } from '../src/utils/guest.ts';
+import { createGuestOrder, getGuestOrders, getGuestSession, getTable, grantTableAccess, guestErrorMessage, isOrderDefinitelyRejected } from '../src/services/guest.ts';
 import { http } from '../src/services/http.ts';
 import type { CartItem } from '../src/types/cart.ts';
 import type { GuestOrderResponse, OrderAttempt, TableAccess } from '../src/types/guest.ts';
@@ -13,8 +13,22 @@ const item: CartItem = { id: '11:row', productId: 11, name: 'Nước chai', quan
 const order: GuestOrderResponse = {
   id: 9, sessionId: 7, tableId: 3, tableName: 'Bàn 03', totalAmount: 30000, status: 'PENDING', paymentStatus: 'UNPAID',
   paymentExpiresAt: '2026-10-24T10:05:00Z', createdAt: '2026-10-24T17:00:00',
-  items: [{ id: 20, productName: 'Nước chai', quantity: 2, price: 15000, toppingNames: null }],
+  items: [{ id: 20, productName: 'Nước chai', quantity: 2, price: 15000 }],
 };
+
+test('opening a QR link without an order renders an empty checkout safely', () => {
+  assert.equal(selectGuestOrder(undefined, null, [], null, null), null);
+  assert.equal(selectGuestOrder(undefined, 7, [], null, null), null);
+  assert.equal(selectGuestOrder(9, 7, [], null, null), null);
+});
+
+test('order selection uses the requested order in the current session only', () => {
+  const second = { ...order, id: 10 };
+  assert.equal(selectGuestOrder(9, 7, [second, order], null, second), order);
+  assert.equal(selectGuestOrder(9, 7, [], order, null), order);
+  assert.equal(selectGuestOrder(9, 7, [], null, order), order);
+  assert.equal(selectGuestOrder(9, 8, [order], order, order), null);
+});
 
 test('payload uses productId and quantity only, merges rows, trims note, ignores browser prices', () => {
   const request = buildGuestOrder([item, { ...item, id: '11:other', quantity: 1 }], '  ít đá  ');
@@ -110,4 +124,43 @@ test('only definite 4xx rejections permit a retry; timeouts, 5xx and malformed s
   }
   assert.equal(isOrderDefinitelyRejected(new AxiosError('timeout', axios.AxiosError.ECONNABORTED)), false);
   assert.equal(isOrderDefinitelyRejected(new Error('invalid success')), false);
+});
+
+test('two unpaid orders in the same session remain separately retrievable after reload', async t => {
+  const previous = http.defaults.adapter;
+  t.after(() => { http.defaults.adapter = previous; });
+  const created: GuestOrderResponse[] = [];
+  http.defaults.adapter = async config => {
+    assert.equal(config.url, '/guest/orders');
+    assert.equal(config.headers.get('X-Table-Session-Token'), access.accessToken);
+    assert.equal(config.headers.get('Authorization'), undefined);
+    if (config.method === 'post') {
+      created.unshift({ ...order, id: 100 + created.length });
+      return { config, status: 201, statusText: 'Created', headers: {}, data: { success: true, data: created[0] } };
+    }
+    assert.deepEqual(config.params, { page: 0, size: 20 });
+    return { config, status: 200, statusText: 'OK', headers: {}, data: { success: true, data: {
+      content: created, page: 0, size: 20, totalElements: 2, totalPages: 1, last: true,
+    } } };
+  };
+  const first = await createGuestOrder(access, buildGuestOrder([item], ''));
+  const second = await createGuestOrder(access, buildGuestOrder([item], ''));
+  const history = await getGuestOrders(access);
+  assert.notEqual(first.id, second.id);
+  assert.equal(first.paymentStatus, 'UNPAID');
+  assert.deepEqual(history.content.map(value => value.id), [second.id, first.id]);
+  assert.equal(history.content[1].paymentExpiresAt, first.paymentExpiresAt);
+});
+
+test('guest history rejects orders from a different session or table', async t => {
+  const previous = http.defaults.adapter;
+  t.after(() => { http.defaults.adapter = previous; });
+  for (const invalid of [{ ...order, sessionId: 8 }, { ...order, tableId: 4 }]) {
+    http.defaults.adapter = async config => ({ config, status: 200, statusText: 'OK', headers: {},
+      data: { success: true, data: {
+        content: [invalid], page: 0, size: 20, totalElements: 1, totalPages: 1, last: true,
+      } },
+    });
+    await assert.rejects(getGuestOrders(access), /Danh sách đơn của phiên bàn chưa hợp lệ/);
+  }
 });

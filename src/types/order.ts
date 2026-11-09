@@ -1,11 +1,17 @@
-export type OrderPaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED';
+import type { DrinkSize } from './productSize';
+import type { DrinkCustomization } from './drinkOptions';
 
-export interface OrderItemResponse {
+export type OrderPaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED';
+export type OrderType = 'DINE_IN' | 'TAKEAWAY';
+
+export type OrderStatus = 'PENDING' | 'PREPARING'  | 'COMPLETED' | 'EXPIRED';
+
+export interface OrderItemResponse extends DrinkCustomization {
   id: number;
   productName: string;
   quantity: number;
   price: number;
-  toppingNames: string[] | null;
+  size?: DrinkSize | null;
 }
 
 export interface OrderResponse {
@@ -13,8 +19,9 @@ export interface OrderResponse {
   sessionId: number | null;
   tableId: number | null;
   tableName: string | null;
+  orderType?: OrderType | null;
   totalAmount: number;
-  status: string;
+  status: OrderStatus;
   paymentStatus: OrderPaymentStatus;
   paymentExpiresAt: string | null;
   createdAt: string;

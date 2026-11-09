@@ -1,3 +1,4 @@
+import Icon from './Icon';
 import React from 'react';
 
 interface QuantityStepperProps {
@@ -30,14 +31,14 @@ const QuantityStepper: React.FC<QuantityStepperProps> = ({
   };
 
   const sizeClasses = {
-    sm: { btn: 'w-11 h-11 text-[16px]', text: 'w-8 text-[13px]' },
-    md: { btn: 'w-11 h-11 text-[18px]', text: 'w-9 text-[16px]' },
+    sm: { btn: 'w-control h-control text-[16px]', text: 'w-8 text-[13px]' },
+    md: { btn: 'w-control h-control text-[18px]', text: 'w-9 text-[16px]' },
     lg: { btn: 'w-12 h-12 text-[20px]', text: 'w-10 text-[18px]' },
   };
 
   return (
-    <div role="group" aria-label={label} className="inline-flex shrink-0 items-center bg-surface-container border border-outline-variant/40
-      rounded-xl overflow-hidden shadow-inner">
+    <div role="group" aria-label={label} className="quantity-stepper inline-flex shrink-0 items-center bg-surface-container border border-outline-variant/40
+      rounded-xl overflow-hidden">
       <button
         onClick={handleDecrement}
         aria-label={`Giảm ${label.toLowerCase()}`}
@@ -46,7 +47,7 @@ const QuantityStepper: React.FC<QuantityStepperProps> = ({
           hover:bg-surface-container-high transition-colors active:scale-90 disabled:opacity-50
           disabled:active:scale-100 font-bold`}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>remove</span>
+        <span aria-hidden="true" className="icon-slot" style={{ fontSize: 'inherit' }}><Icon name="remove" /></span>
       </button>
 
       <span className={`${sizeClasses[size].text} text-center font-label-caps font-bold text-primary tabular-nums`}>
@@ -61,7 +62,7 @@ const QuantityStepper: React.FC<QuantityStepperProps> = ({
           hover:bg-surface-container-high transition-colors active:scale-90 disabled:opacity-50
           disabled:active:scale-100 font-bold`}
       >
-        <span className="material-symbols-outlined" style={{ fontSize: 'inherit' }}>add</span>
+        <span aria-hidden="true" className="icon-slot" style={{ fontSize: 'inherit' }}><Icon name="add" /></span>
       </button>
     </div>
   );

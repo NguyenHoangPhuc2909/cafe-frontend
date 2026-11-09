@@ -11,12 +11,22 @@ export function useStaffTables(session: StaffSession | null) {
   useEffect(() => {
     if (!session) return;
     const controller = new AbortController();
-    getStaffTableOverview(session.accessToken, controller.signal).then(rows => {
-      if (!controller.signal.aborted) setResult({ token: session.accessToken, rows, error: null, denied: false });
-    }).catch(cause => {
-      if (!controller.signal.aborted) setResult({ token: session.accessToken, rows: [], error: staffErrorMessage(cause), denied: isStaffAccessError(cause) });
-    }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
-    return () => controller.abort();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const load = async () => {
+      try {
+        const rows = await getStaffTableOverview(session.accessToken, controller.signal);
+        if (!controller.signal.aborted) setResult({ token: session.accessToken, rows, error: null, denied: false });
+      } catch (cause) {
+        if (!controller.signal.aborted) setResult({ token: session.accessToken, rows: [], error: staffErrorMessage(cause), denied: isStaffAccessError(cause) });
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+          timer = setTimeout(() => void load(), 5000);
+        }
+      }
+    };
+    void load();
+    return () => { controller.abort(); clearTimeout(timer); };
   }, [session, version]);
 
   useEffect(() => {

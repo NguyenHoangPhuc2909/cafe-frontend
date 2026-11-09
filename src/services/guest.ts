@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiResponse } from '../types/api.ts';
+import type { ApiResponse, PageResponse } from '../types/api.ts';
 import type { CafeTableResponse, GuestOrderRequest, GuestOrderResponse, TableAccess, TableSessionResponse } from '../types/guest.ts';
 import { isGuestOrder, isTableAccess } from '../utils/guest.ts';
 import { http } from './http.ts';
@@ -74,6 +74,26 @@ export async function getGuestOrder(access: TableAccess, orderId: number, signal
     }
 
     return order;
+}
+
+export async function getGuestOrders(
+  access: TableAccess, page = 0, signal?: AbortSignal,
+): Promise<PageResponse<GuestOrderResponse>> {
+  const { data } = await http.get<ApiResponse<PageResponse<GuestOrderResponse>>>(
+    '/guest/orders', {
+      headers: { 'X-Table-Session-Token': access.accessToken },
+      params: { page, size: 20 }, signal,
+    },
+  );
+  const result = unwrap(data);
+  if (!Array.isArray(result.content) || !Number.isSafeInteger(result.page) || result.page !== page ||
+      result.size !== 20 || !Number.isSafeInteger(result.totalElements) || result.totalElements < 0 ||
+      !Number.isSafeInteger(result.totalPages) || result.totalPages < 0 || typeof result.last !== 'boolean' ||
+      !result.content.every(order => isGuestOrder(order) &&
+        order.sessionId === access.sessionId && order.tableId === access.tableId)) {
+    throw new Error('Danh sách đơn của phiên bàn chưa hợp lệ.');
+  }
+  return result;
 }
 
 export function guestErrorMessage(error: unknown) {

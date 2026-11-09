@@ -3,8 +3,14 @@ import type { GuestOrderResponse } from "../types/guest";
 
 export interface CheckoutValue {
   order: GuestOrderResponse | null;
+  orders: GuestOrderResponse[];
+  page: number;
+  totalPages: number;
+  isLoadingOrders: boolean;
+  selectOrder: (id: number) => void;
+  setPage: (page: number) => void;
+  reloadOrders: () => void;
   startCheckout: () => Promise<boolean>;
-  refreshOrder: () => void;
   startNewOrder: () => boolean;
   error: string | null;
 }

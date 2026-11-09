@@ -1,3 +1,6 @@
+import { Drawer, Grid, Popconfirm } from 'antd';
+import Icon from '../../components/ui/Icon';
+import { Skeleton, TablesSkeleton } from "../../components/ui/Skeleton";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useStaffAuth } from "../../hooks/useStaffAuth";
@@ -5,20 +8,20 @@ import { useStaffTables } from "../../hooks/useStaffTables";
 import { filterStaffTables, tableState } from "../../utils/staffTables";
 import type { StaffTableFilter } from "../../types/staffApi";
 import {
-  openStaffTableSession,
+  closeStaffTableSession,
   staffErrorMessage,
 } from "../../services/staffApi";
 import { useStaffOrders } from "../../hooks/useStaffOrders";
 
 const states = {
   open: {
-    title: "Có phiên phục vụ",
+    title: "Đang phục vụ",
     color: "border-primary bg-primary/5",
-    badge: "bg-primary text-on-primary",
+    badge: "bg-green-50 text-green-800",
     icon: "restaurant",
   },
   idle: {
-    title: "Chưa mở phiên",
+    title: "Bàn trống",
     color: "border-outline-variant/40 bg-surface",
     badge: "bg-surface-container text-on-surface-variant",
     icon: "table_restaurant",
@@ -30,7 +33,7 @@ const states = {
     icon: "block",
   },
   unknown: {
-    title: "Chưa xác định phiên",
+    title: "Chưa xác định",
     color: "border-secondary/40 bg-secondary-fixed/20",
     badge: "bg-secondary-fixed text-on-secondary-container",
     icon: "help",
@@ -38,6 +41,9 @@ const states = {
 };
 
 export default function StaffTablesPage() {
+  const screens = Grid.useBreakpoint();
+  const desktop = !!screens.lg;
+  const [detailOpen, setDetailOpen] = useState(false);
   const { session, signOut } = useStaffAuth();
   const { rows, error, accessDenied, isLoading, reload } =
     useStaffTables(session);
@@ -45,8 +51,8 @@ export default function StaffTablesPage() {
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [notice, setNotice] = useState("");
-  const [isOpening, setIsOpening] = useState(false);
-  const opening = useRef(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const closing = useRef(false);
   const visible = filterStaffTables(rows, filter, query);
   const selected =
     visible.find((row) => row.table.id === selectedId) ?? visible[0] ?? null;
@@ -60,199 +66,24 @@ export default function StaffTablesPage() {
     size: 1,
   });
 
-  const open = async () => {
-    if (
-      !session ||
-      !selected ||
-      tableState(selected) !== "idle" ||
-      opening.current ||
-      isLoading
-    )
-      return;
-    opening.current = true;
-    setIsOpening(true);
-    setNotice("");
+  const close = async () => {
+    if (!session || !selected?.session || closing.current || isLoading) return;
+    closing.current = true;
+    setIsClosing(true);
+    setNotice('');
     try {
-      const opened = await openStaffTableSession(
-        session.accessToken,
-        selected.table.id,
-      );
-      setNotice(
-        `Đã mở phiên #${opened.id} cho ${selected.table.name}. Khách có thể dùng QR của bàn.`,
-      );
+      await closeStaffTableSession(session.accessToken, selected.table.id, selected.session.id);
+      setNotice(`Đã kết thúc phiên #${selected.session.id} của ${selected.table.name}. Bàn sẵn sàng đón lượt khách mới.`);
     } catch (cause) {
-      setNotice(
-        staffErrorMessage(cause) +
-          " Sơ đồ sẽ được tải lại để đối chiếu kết quả.",
-      );
+      setNotice(`${staffErrorMessage(cause)} Sơ đồ sẽ được tải lại để đối chiếu kết quả.`);
     } finally {
-      opening.current = false;
-      setIsOpening(false);
+      closing.current = false;
+      setIsClosing(false);
       reload();
     }
   };
 
-  return (
-    <div className="h-full min-w-0 overflow-y-auto bg-[#F6F2EE] p-4 sm:p-6">
-      <div className="mx-auto max-w-7xl">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-secondary">
-              L'Atelier · Không gian phục vụ
-            </p>
-            <h1 className="mt-1 text-2xl font-bold text-primary sm:text-3xl">
-              Sơ đồ bàn
-            </h1>
-            <p className="mt-2 text-sm text-on-surface-variant">
-              Tra cứu bàn, phiên đang mở và các đơn trong phiên.
-            </p>
-          </div>
-          {session && (
-            <button
-              type="button"
-              onClick={reload}
-              disabled={isLoading || isOpening}
-              className="min-h-11 rounded-xl border border-primary px-4 text-sm font-semibold text-primary disabled:opacity-40"
-            >
-              {isLoading ? "Đang tải…" : "Tải lại sơ đồ"}
-            </button>
-          )}
-        </div>
-        <>
-          <div className="mt-5 grid grid-cols-2 gap-3 xl:grid-cols-5">
-            {(
-              [
-                "all",
-                "open",
-                "idle",
-                "inactive",
-                "unknown",
-              ] as StaffTableFilter[]
-            ).map((state) => (
-              <button
-                type="button"
-                key={state}
-                aria-pressed={filter === state}
-                onClick={() => {
-                  setFilter(state);
-                  setSelectedId(null);
-                }}
-                className={`rounded-2xl border p-4 text-left ${filter === state ? "border-primary bg-primary text-on-primary" : "border-outline-variant/40 bg-surface text-primary"}`}
-              >
-                <strong className="block text-2xl">
-                  {state === "all"
-                    ? rows.length
-                    : rows.filter((row) => tableState(row) === state).length}
-                </strong>
-                <span className="mt-1 block text-xs font-semibold">
-                  {state === "all" ? "Tất cả bàn" : states[state].title}
-                </span>
-              </button>
-            ))}
-          </div>
-          <label className="mt-5 block sm:max-w-sm">
-            <span className="sr-only">Tìm tên hoặc ID bàn</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm tên hoặc ID bàn…"
-              className="min-h-12 w-full rounded-xl border border-outline-variant/40 bg-surface px-4 text-base outline-none focus:border-primary sm:text-sm"
-            />
-          </label>
-          {notice && (
-            <p
-              role="status"
-              className="mt-4 rounded-xl bg-surface-container p-4 text-sm"
-            >
-              {notice}
-            </p>
-          )}
-          {error && (
-            <div
-              role="alert"
-              className="mt-5 rounded-xl bg-error-container/30 p-4 text-sm text-error"
-            >
-              <p>{error}</p>
-              {accessDenied ? (
-                <button
-                  type="button"
-                  onClick={signOut}
-                  className="mt-3 min-h-11 rounded-lg border border-primary px-4 font-semibold text-primary"
-                >
-                  Đăng nhập lại
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={reload}
-                  disabled={isLoading}
-                  className="mt-3 min-h-11 rounded-lg border border-primary px-4 font-semibold text-primary disabled:opacity-40"
-                >
-                  Thử lại
-                </button>
-              )}
-            </div>
-          )}
-          {isLoading ? (
-            <p
-              role="status"
-              className="mt-7 p-8 text-center text-sm text-on-surface-variant"
-            >
-              Đang tải bàn và kiểm tra phiên phục vụ…
-            </p>
-          ) : (
-            !error && (
-              <div className="mt-5 grid items-start gap-5 xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.7fr)]">
-                <section aria-label="Các bàn trong quán" className="min-w-0">
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-3">
-                    {visible.map((row) => {
-                      const state = tableState(row);
-                      const style = states[state];
-                      return (
-                        <button
-                          type="button"
-                          key={row.table.id}
-                          disabled={isOpening}
-                          onClick={() => setSelectedId(row.table.id)}
-                          aria-pressed={selected?.table.id === row.table.id}
-                          className={`relative min-w-0 rounded-2xl border p-4 text-center shadow-sm transition-colors disabled:opacity-60 ${style.color} ${selected?.table.id === row.table.id ? "ring-2 ring-primary" : ""}`}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="material-symbols-outlined text-4xl text-primary"
-                          >
-                            {style.icon}
-                          </span>
-                          <h2 className="mt-3 break-words text-base font-bold text-primary">
-                            {row.table.name}
-                          </h2>
-                          <span
-                            className={`mt-3 inline-block rounded-full px-2 py-1 text-[10px] font-semibold ${style.badge}`}
-                          >
-                            {style.title}
-                          </span>
-                          <p className="mt-2 text-xs text-on-surface-variant">
-                            {row.session
-                              ? `Phiên #${row.session.id}`
-                              : `ID bàn ${row.table.id}`}
-                          </p>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {visible.length === 0 && (
-                    <p className="rounded-2xl border border-dashed border-outline-variant bg-surface p-9 text-center text-sm text-on-surface-variant">
-                      {rows.length
-                        ? "Không có bàn khớp bộ lọc."
-                        : "Chưa có bàn trong database. Có thể tạo bàn bằng API Staff hiện có."}
-                    </p>
-                  )}
-                </section>
-                {selected && (
-                  <aside
-                    aria-label="Chi tiết bàn"
-                    className="min-w-0 rounded-2xl border border-outline-variant/40 bg-surface p-5 xl:sticky xl:top-0"
-                  >
+  const details = selected ? <div className="table-detail-body">
                     <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
                       Chi tiết bàn
                     </p>
@@ -299,34 +130,36 @@ export default function StaffTablesPage() {
                         )}
                         <Link
                           to={`/staff/orders?session=${selected.session.id}`}
-                          className="mt-4 flex min-h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary"
+                          className="mt-4 flex min-h-control items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary"
                         >
                           Xem đơn trong phiên
                         </Link>
                         <Link
                           to={`/staff/history?session=${selected.session.id}`}
-                          className="mt-2 flex min-h-11 items-center justify-center rounded-xl border border-primary px-4 text-sm font-semibold text-primary"
+                          className="mt-2 flex min-h-control items-center justify-center rounded-xl border border-primary px-4 text-sm font-semibold text-primary"
                         >
                           Lịch sử phiên hiện tại
                         </Link>
+                        <div className="mt-5 border-t border-outline-variant/30 pt-4">
+                          <p className="mb-3 text-xs leading-relaxed text-on-surface-variant">
+                            Kết thúc phiên sau khi khách rời bàn. Các đơn phải hoàn thành hoặc đã hết hạn.
+                          </p>
+                          <Popconfirm title={`Kết thúc phiên của ${selected.table.name}?`}
+                            description="Xác nhận khách đã rời bàn. Quyền đặt món của phiên này sẽ kết thúc."
+                            okText="Khách đã rời bàn" cancelText="Quay lại"
+                            onConfirm={close} disabled={isClosing || isLoading}>
+                            <button type="button" disabled={isClosing || isLoading}
+                              className="ui-button w-full border-error/30 text-error">
+                              {isClosing ? 'Đang kết thúc phiên…' : 'Kết thúc phiên'}
+                            </button>
+                          </Popconfirm>
+                        </div>
                       </>
                     )}
                     {tableState(selected) === "idle" && (
                       <div className="mt-5">
                         <p className="text-sm leading-relaxed text-on-surface-variant">
-                          Mở phiên phục vụ để khách tại bàn có thể nhận token QR
-                          và bắt đầu đặt món.
-                        </p>
-                        <button
-                          type="button"
-                          disabled={isOpening || isLoading}
-                          onClick={() => void open()}
-                          className="mt-4 min-h-12 w-full rounded-xl bg-primary px-4 font-semibold text-on-primary disabled:opacity-40"
-                        >
-                          {isOpening ? "Đang mở phiên…" : "Mở phiên phục vụ"}
-                        </button>
-                        <p className="mt-2 text-xs text-on-surface-variant">
-                          Thao tác này mở phiên thật trong DB.
+                          Khách quét QR và xác nhận bàn để bắt đầu đặt món. Phiên phục vụ sẽ tự mở khi khách xác nhận.
                         </p>
                       </div>
                     )}
@@ -335,14 +168,12 @@ export default function StaffTablesPage() {
                         to={`/table/${encodeURIComponent(selected.table.qrCode)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-5 flex min-h-11 items-center justify-center gap-2 rounded-xl border border-outline-variant px-4 text-sm font-semibold text-primary"
+                        className="mt-5 flex min-h-control items-center justify-center gap-2 rounded-xl border border-outline-variant px-4 text-sm font-semibold text-primary"
                       >
                         <span
                           aria-hidden="true"
-                          className="material-symbols-outlined text-xl"
-                        >
-                          qr_code_2
-                        </span>
+                          className="icon-slot text-xl"
+                        ><Icon name="qr_code_2" /></span>
                         Mở trang QR của bàn
                       </Link>
                     )}
@@ -350,13 +181,137 @@ export default function StaffTablesPage() {
                       BE chưa có API đóng phiên. Đơn mẫu phục vụ xong không tự
                       làm phiên thật của bàn đóng lại.
                     </p>
-                  </aside>
-                )}
+  </div> : null;
+
+  return (
+    <div className="staff-page-scroll h-full">
+      <div className="staff-page-content">
+        <div className="staff-page-heading">
+          <div>
+            <h1 className="ui-page-title">
+              Sơ đồ bàn
+            </h1>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Tra cứu bàn, phiên đang mở và các đơn trong phiên.
+            </p>
+          </div>
+        </div>
+        <>
+          <div className="table-filter-list">
+            {(
+              [
+                "all",
+                "open",
+                "idle",
+                "inactive",
+                "unknown",
+              ] as StaffTableFilter[]
+            ).map((state) => (
+              <button
+                type="button"
+                key={state}
+                aria-pressed={filter === state}
+                onClick={() => {
+                  setFilter(state);
+                  setSelectedId(null);
+                }}
+                className="table-filter"
+              >
+                <span>{state === "all" ? "Tất cả bàn" : states[state].title}</span>
+                <strong>{isLoading && rows.length === 0 ? <Skeleton className="h-3 w-4" /> : state === "all" ? rows.length : rows.filter(row => tableState(row) === state).length}</strong>
+              </button>
+            ))}
+          </div>
+          <label className="mt-5 block sm:max-w-sm">
+            <span className="sr-only">Tìm tên hoặc ID bàn</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Tìm tên hoặc ID bàn…"
+              className="min-h-control w-full rounded-xl border border-outline-variant/40 bg-surface px-4 text-base outline-none focus:border-primary sm:text-sm"
+            />
+          </label>
+          {notice && (
+            <p
+              role="status"
+              className="mt-4 rounded-xl bg-surface-container p-4 text-sm"
+            >
+              {notice}
+            </p>
+          )}
+          {error && (
+            <div
+              role="alert"
+              className="mt-5 rounded-xl bg-error-container/30 p-4 text-sm text-error"
+            >
+              <p>{error}</p>
+              {accessDenied && (
+                <button
+                  type="button"
+                  onClick={signOut}
+                  className="mt-3 min-h-control rounded-lg border border-primary px-4 font-semibold text-primary"
+                >
+                  Đăng nhập lại
+                </button>
+              )}
+            </div>
+          )}
+          {isLoading && rows.length === 0 ? (
+            <TablesSkeleton />
+          ) : (
+            !error && (
+              <div className="staff-table-grid mt-5">
+                <section aria-label="Các bàn trong quán" className="min-w-0">
+                  <div className="staff-table-tiles">
+                    {visible.map((row) => {
+                      const state = tableState(row);
+                      const style = states[state];
+                      return (
+                        <button
+                          type="button"
+                          key={row.table.id}
+                          disabled={isClosing || isLoading}
+                          onClick={() => { setSelectedId(row.table.id); if (!desktop) setDetailOpen(true); }}
+                          aria-pressed={selected?.table.id === row.table.id}
+                          className="table-tile"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="icon-slot text-2xl text-on-surface-variant"
+                          ><Icon name={style.icon} /></span>
+                          <h2 className="mt-2 break-words text-sm font-semibold text-on-surface">
+                            {row.table.name}
+                          </h2>
+                          <span
+                            className={`mt-2 inline-block rounded-md px-2 py-1 text-[10px] font-semibold ${style.badge}`}
+                          >
+                            {style.title}
+                          </span>
+                          <p className="mt-2 text-xs text-on-surface-variant">
+                            {row.session
+                              ? `Phiên #${row.session.id}`
+                              : `ID bàn ${row.table.id}`}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {visible.length === 0 && (
+                    <p className="rounded-2xl border border-dashed border-outline-variant bg-surface p-9 text-center text-sm text-on-surface-variant">
+                      {rows.length
+                        ? "Không có bàn khớp bộ lọc."
+                        : "Chưa có bàn trong database. Có thể tạo bàn bằng API Staff hiện có."}
+                    </p>
+                  )}
+                </section>
+                {desktop && selected && <aside aria-label="Chi tiết bàn" className="order-detail">{details}</aside>}
+
               </div>
             )
           )}
         </>
       </div>
+      {!desktop && <Drawer title={selected ? selected.table.name : 'Chi tiết bàn'} placement="bottom" size="auto" open={detailOpen && !!selected} onClose={() => setDetailOpen(false)} styles={{ wrapper: { maxHeight: '85dvh' }, section: { maxHeight: '85dvh', minHeight: 240 }, body: { padding: 0 } }}>{details}</Drawer>}
     </div>
   );
 }

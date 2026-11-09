@@ -14,6 +14,7 @@ import {
 import {
   createGuestOrder,
   getGuestOrder,
+  getGuestOrders,
   getGuestSession,
   grantTableAccess,
   guestErrorMessage,
@@ -149,13 +150,10 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
     try {
       const next = await grantTableAccess(qrCode);
       const verified = await getGuestSession(next);
-      if (currentAttempt && currentAttempt.sessionId !== verified.id) {
-        throw new Error(
-          "Đơn hiện tại thuộc phiên khác. Vui lòng liên hệ nhân viên.",
-        );
-      }
       const previous = accessRef.current;
-      if (previous && previous.sessionId !== next.sessionId) {
+      const previousSessionId = previous?.sessionId ?? currentAttempt?.sessionId;
+      if (previousSessionId !== undefined && previousSessionId !== verified.id) {
+        saveAttempt(null, true);
         clearCart();
         setNote("");
       }
@@ -196,7 +194,8 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
   );
 
   const submitOrder = async (): Promise<GuestOrderResponse | null> => {
-    if (busy.current || connecting.current || attemptRef.current) {
+    if (busy.current || connecting.current ||
+        (attemptRef.current && attemptRef.current.state !== 'success')) {
       return null;
     }
 
@@ -266,10 +265,25 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
   };
 
   const dismissAttempt = () => {
-    if (busy.current || attemptRef.current?.state !== "success") return;
-    saveAttempt(null);
-    setOrderError(null);
+    if (busy.current || connecting.current ||
+        (attemptRef.current && attemptRef.current.state !== 'success')) return false;
+    try {
+      saveAttempt(null, true);
+      setOrderError(null);
+      return true;
+    } catch (cause) {
+      setOrderError(guestErrorMessage(cause));
+      return false;
+    }
   };
+
+  const readOrders = useCallback(async (page: number, signal?: AbortSignal) => {
+    const current = accessRef.current;
+    if (!current) throw new Error('Vui lòng quét lại QR tại bàn để xem các đơn đã gọi.');
+    const result = await getGuestOrders(current, page, signal);
+    if (accessRef.current !== current) throw new Error('Phiên bàn đã thay đổi. Vui lòng tải lại danh sách đơn.');
+    return result;
+  }, []);
 
   const resolveUnknownOrder = (wasCreated: boolean) => {
     if (busy.current || attemptRef.current?.state !== "unknown") return;
@@ -292,14 +306,13 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
         session,
         isChecking,
         sessionError,
-        canRefreshSession: !!access,
-        refreshSession,
         connectTable,
         attempt,
         isSubmitting,
         orderError,
         submitOrder,
         readOrder,
+        readOrders,
         dismissAttempt,
         resolveUnknownOrder,
       }}

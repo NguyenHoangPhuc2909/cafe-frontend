@@ -17,6 +17,9 @@ import StaffTablesPage from "./pages/Staff/StaffTablesPage";
 import { StaffAuthProvider } from "./contexts/StaffAuthProvider";
 import StaffLoginPage from "./pages/Staff/StaffLoginPage";
 import RequireStaffAuth from "./components/staff/RequireStaffAuth";
+import RequireOrderStaff from "./components/staff/RequireOrderStaff";
+import StaffInventoryPage from "./pages/Staff/StaffInventoryPage";
+import StaffRevenuePage from "./pages/Staff/StaffRevenuePage";
 
 function App() {
   return (
@@ -31,11 +34,6 @@ function App() {
             path="order-status"
             element={<Navigate to="/checkout" replace />}
           />
-          <Route
-            path="checkout-demo"
-            element={<Navigate to="/checkout" replace />}
-          />
-          {/* Các trang con khác của Customer sẽ nằm ở đây (VD: /cart) */}
         </Route>
 
         {/* Cụm Route dành cho Nhân viên/Quản lý */}
@@ -49,8 +47,11 @@ function App() {
           <Route path="/staff/login" element={<StaffLoginPage />} />
           <Route element={<RequireStaffAuth />}>
             <Route path="/staff" element={<StaffLayout />}>
-              <Route index element={<Navigate to="orders" replace />} />
-              <Route path="pos" element={<POSPage />} />
+              <Route index element={<Navigate to="pos" replace />} />
+              <Route element={<RequireOrderStaff />}>
+                <Route path="pos" element={<POSPage />} />
+                <Route path="revenue" element={<StaffRevenuePage />} />
+              </Route>
               <Route path="orders" element={<StaffOrdersPage key="orders" />} />
               <Route
                 path="kds"
@@ -61,27 +62,10 @@ function App() {
                 element={<StaffOrdersPage key="history" mode="history" />}
               />
               <Route path="tables" element={<StaffTablesPage />} />
-              <Route
-                path="inventory"
-                element={
-                  <div className="p-8">
-                    Quản trị Kho/Menu sẽ được nối ở bước tiếp theo. POS đang đọc
-                    thực đơn bán hàng từ DB.
-                  </div>
-                }
-              />
-              <Route
-                path="settings"
-                element={
-                  <div className="p-8">
-                    Thiết lập nhân viên và phân quyền chưa được nối trong bản
-                    thử UI.
-                  </div>
-                }
-              />
+              <Route path="inventory" element={<StaffInventoryPage />} />
               <Route
                 path="*"
-                element={<Navigate to="/staff/orders" replace />}
+                element={<Navigate to="/staff/pos" replace />}
               />
             </Route>
           </Route>

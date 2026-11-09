@@ -1,4 +1,6 @@
 import type { OrderResponse } from "./order";
+import type { DrinkSize } from './productSize';
+import type { DrinkCustomization } from './drinkOptions';
 
 export interface CafeTableResponse {
   id: number;
@@ -19,13 +21,13 @@ export interface TableSessionResponse {
   id: number;
   tableId: number;
   tableName: string;
-  status: 'OPEN' | 'CLOSED';
+  status: 'OPEN' | 'CLOSE';
   openedAt: string;
   closedAt: string | null;
 }
 
 export interface GuestOrderRequest {
-  items: { productId: number; quantity: number }[];
+  items: ({ productId: number; quantity: number; size?: DrinkSize } & DrinkCustomization)[];
   note: string;
 }
 

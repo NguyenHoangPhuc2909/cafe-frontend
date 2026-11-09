@@ -1,3 +1,5 @@
+import type { ProductSizeOption } from './productSize';
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -11,6 +13,7 @@ export interface ProductResponse {
   description: string | null;
   imageUrl: string | null;
   isActive: boolean;
+  sizes?: ProductSizeOption[];
   categoryId: number | null;
   categoryName: string | null;
 }

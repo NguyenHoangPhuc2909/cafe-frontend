@@ -1,3 +1,4 @@
+import SelectField from '../ui/SelectField';
 import { useRef, useState } from "react";
 import type { OrderResponse } from "../../types/order";
 import type { PaymentMethod } from "../../types/payment";
@@ -13,10 +14,11 @@ import { formatCurrency } from "../../utils/format";
 
 interface Props {
   order: OrderResponse;
+  embedded?: boolean;
   onChanged: (message: string, success: boolean) => void;
 }
 
-export default function StaffPaymentPanel({ order, onChanged }: Props) {
+export default function StaffPaymentPanel({ order, onChanged, embedded = false }: Props) {
   const { session } = useStaffAuth();
   const [method, setMethod] = useState<PaymentMethod>("CASH");
   const [lockedMethod, setLockedMethod] = useState<PaymentMethod | null>(null);
@@ -35,10 +37,10 @@ export default function StaffPaymentPanel({ order, onChanged }: Props) {
     (confirmed && order.paymentStatus === "UNPAID");
 
   const payable =
+    session?.role === "STAFF" &&
     !paid &&
     order.status === "PENDING" &&
     order.paymentStatus === "UNPAID" &&
-    order.sessionId !== null &&
     remainingSeconds > 0 &&
     Number.isFinite(order.totalAmount) &&
     order.totalAmount >= 0;
@@ -95,13 +97,17 @@ export default function StaffPaymentPanel({ order, onChanged }: Props) {
     }
   };
 
+  if (session?.role !== "STAFF") {
+    return <CheckoutSummary order={order} embedded={embedded} />;
+  }
+
   return (
-    <div className="space-y-4">
-      <CheckoutSummary order={order} />
+    <div className={embedded ? "order-payment-content" : "space-y-4"}>
+      <CheckoutSummary order={order} embedded={embedded} />
 
       <section
         aria-label="Xác nhận thanh toán"
-        className="rounded-2xl border border-outline-variant/30 bg-surface p-5"
+        className={embedded ? "order-payment-section" : "rounded-2xl border border-outline-variant/30 bg-surface p-5"}
       >
         {paid && (
           <p className="font-semibold text-green-800">
@@ -123,27 +129,14 @@ export default function StaffPaymentPanel({ order, onChanged }: Props) {
               Thời gian còn lại theo giờ thiết bị: <strong>{countdown}</strong>
             </p>
 
-            <label className="mt-4 block text-sm font-semibold">
-              Phương thức đã nhận tiền
-              <select
-                value={lockedMethod ?? method}
-                disabled={busy || lockedMethod !== null}
-                onChange={(event) => {
-                  const value = event.target.value;
+            <div className="mt-4 text-sm">
+              <p className="mb-2 font-semibold">Phương thức đã nhận tiền</p>
+              <SelectField label="Phương thức đã nhận tiền" value={lockedMethod ?? method} disabled={busy || lockedMethod !== null} className="w-full"
+                onChange={value => { setMethod(value); setAcknowledged(false); }}
+                options={[{ value: 'CASH', label: 'Tiền mặt' }, { value: 'BANK_TRANSFER', label: 'Chuyển khoản' }]} />
+            </div>
 
-                  if (value === "CASH" || value === "BANK_TRANSFER") {
-                    setMethod(value);
-                    setAcknowledged(false);
-                  }
-                }}
-                className="mt-2 min-h-11 w-full rounded-xl border border-outline-variant bg-surface px-3"
-              >
-                <option value="CASH">Tiền mặt</option>
-                <option value="BANK_TRANSFER">Chuyển khoản</option>
-              </select>
-            </label>
-
-            <label className="mt-4 flex min-h-11 items-start gap-3 text-sm">
+            <label className="mt-4 flex min-h-control items-start gap-3 text-sm">
               <input
                 type="checkbox"
                 checked={acknowledged}
@@ -161,7 +154,7 @@ export default function StaffPaymentPanel({ order, onChanged }: Props) {
               type="button"
               disabled={!acknowledged || busy || !payable || !session}
               onClick={() => void confirm()}
-              className="mt-4 min-h-12 w-full rounded-xl bg-primary px-4 font-semibold text-on-primary disabled:opacity-40"
+              className="mt-4 min-h-control w-full rounded-xl bg-primary px-4 font-semibold text-on-primary disabled:opacity-40"
             >
               {busy ? "Đang xử lý…" : "Xác nhận đã nhận tiền"}
             </button>

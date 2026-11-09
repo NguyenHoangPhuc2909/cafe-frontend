@@ -1,5 +1,5 @@
 export function staffReturnPath(value: unknown): string {
-  const fallback = '/staff/orders';
+  const fallback = '/staff/pos';
   if (typeof value !== 'string' || !value.startsWith('/') || value.startsWith('//')
     || /[\\\p{Cc}]/u.test(value)) return fallback;
   try {
