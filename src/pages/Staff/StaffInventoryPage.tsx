@@ -10,10 +10,6 @@ import {
 import { staffErrorMessage } from "../../services/staffApi";
 import StockReceiptModal from "../../components/staff/StockReceiptModal";
 import StockReceiptHistory from "../../components/staff/StockReceiptHistory";
-import StocktakeForm from "../../components/staff/StocktakeForm";
-import StocktakeHistory from "../../components/staff/StocktakeHistory";
-import StocktakeReportView from "../../components/staff/StocktakeReportView";
-import type { StocktakeReport } from "../../types/stocktake";
 
 interface Result {
   token: string;
@@ -44,9 +40,6 @@ export default function StaffInventoryPage() {
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [loadVersion, setLoadVersion] = useState(0);
-  const [stocktakeOpen, setStocktakeOpen] = useState(false);
-  const [stocktakeHistoryOpen, setStocktakeHistoryOpen] = useState(false);
-  const [savedStocktake, setSavedStocktake] = useState<StocktakeReport | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -103,10 +96,6 @@ export default function StaffInventoryPage() {
             <p>Theo dõi nguyên liệu và hàng đóng gói khả dụng trong quán.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button type="button" disabled={!session} onClick={() => setStocktakeHistoryOpen(true)}
-              className="min-h-control rounded-xl border border-outline-variant bg-white px-4 text-sm font-semibold disabled:opacity-40">Lịch sử kiểm kho</button>
-            <button type="button" disabled={!session} onClick={() => setStocktakeOpen(true)}
-              className="min-h-control rounded-xl border border-primary bg-white px-4 text-sm font-semibold text-primary disabled:opacity-40">Kiểm kho</button>
             <button
               type="button"
               disabled={!session}
@@ -252,12 +241,6 @@ export default function StaffInventoryPage() {
           </section>
         )}
 
-        {stocktakeOpen && session && <StocktakeForm key={session.username} token={session.accessToken} username={session.username}
-          onClose={() => setStocktakeOpen(false)} onSuccess={report => { setStocktakeOpen(false); setSavedStocktake(report); }} />}
-        {stocktakeHistoryOpen && session && <StocktakeHistory key={session.username} token={session.accessToken} onClose={() => setStocktakeHistoryOpen(false)} />}
-        {savedStocktake && <Modal open title="Đã lưu phiếu kiểm kho" width={1000} footer={null} onCancel={() => setSavedStocktake(null)}>
-          <StocktakeReportView report={savedStocktake} />
-        </Modal>}
         {historyOpen && session && (
           <Modal
             open
