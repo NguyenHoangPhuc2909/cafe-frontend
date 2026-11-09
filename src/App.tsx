@@ -19,6 +19,7 @@ import StaffLoginPage from "./pages/Staff/StaffLoginPage";
 import RequireStaffAuth from "./components/staff/RequireStaffAuth";
 import RequireOrderStaff from "./components/staff/RequireOrderStaff";
 import StaffInventoryPage from "./pages/Staff/StaffInventoryPage";
+import StaffRevenuePage from "./pages/Staff/StaffRevenuePage";
 
 function App() {
   return (
@@ -49,6 +50,7 @@ function App() {
               <Route index element={<Navigate to="pos" replace />} />
               <Route element={<RequireOrderStaff />}>
                 <Route path="pos" element={<POSPage />} />
+                <Route path="revenue" element={<StaffRevenuePage />} />
               </Route>
               <Route path="orders" element={<StaffOrdersPage key="orders" />} />
               <Route

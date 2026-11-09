@@ -598,6 +598,126 @@ input[type="search"]::-webkit-search-cancel-button { -webkit-appearance: none; }
 .customer-empty-state__icon .app-icon.anticon { width: 28px; height: 28px; font-size: 28px; }
 .customer-flow-progress .ant-steps-item-title { font-size: 12px; }
 
+.stocktake-modal { top: 28px; padding-bottom: 28px; }
+.stocktake-modal .ant-modal-body { max-height: calc(100dvh - 205px); overflow-y: auto; scrollbar-width: thin; }
+.stocktake-modal .ant-modal-header { margin-bottom: 18px; }
+.stocktake-modal .ant-modal-footer { border-top: 1px solid #eee9e3; margin-top: 18px; padding-top: 16px; }
+.stocktake-title { display: flex; align-items: center; gap: 12px; padding-right: 28px; }
+.stocktake-title-icon { display: grid; place-items: center; width: 44px; height: 44px; background: #f8eee4; color: #a1653b; border: 1px solid #efdecc; border-radius: 12px; }
+.stocktake-title h2 { font-size: 19px; font-weight: 650; color: #30323a; }
+.stocktake-title p { margin-top: 3px; font-size: 12px; font-weight: 400; color: #7a7c83; }
+.stocktake-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; color: #80838c; font-size: 12px; }
+.stocktake-meta > span { display: inline-flex; align-items: center; gap: 6px; }
+.stocktake-meta .stocktake-person { padding: 6px 10px; border-radius: 6px; background: #f6f7f9; color: #596374; }
+.stocktake-meta .stocktake-person strong { font-weight: 550; }
+.stocktake-meta .stocktake-refresh { margin-left: auto; color: #79624e; background: #faf8f5; border: 1px solid #ede6df; }
+.stocktake-overview { margin: 16px 0; padding: 14px 16px 10px; border: 1px solid #eae4dd; background: #fcfaf7; border-radius: 10px; }
+.stocktake-progress { display: grid; grid-template-columns: 1fr auto auto; gap: 28px; align-items: center; margin-bottom: 8px; }
+.stocktake-progress > div > span { display: block; color: #808087; font-size: 11px; margin-bottom: 4px; }
+.stocktake-progress strong { display: block; color: #383a41; font-size: 23px; line-height: 1.25; font-weight: 650; font-variant-numeric: tabular-nums; }
+.stocktake-progress strong small { font-size: 12px; font-weight: 400; color: #808087; }
+.stocktake-stat { min-width: 74px; padding-left: 24px; border-left: 1px solid #e8e1d8; }
+.stocktake-stat strong { font-size: 20px; }
+.stocktake-stat.has-difference strong { color: #b3792c; }
+.stocktake-toolbar { display: grid; grid-template-columns: auto minmax(120px, 1fr) 145px; align-items: center; gap: 10px; margin: 18px 0 16px; }
+.stocktake-toolbar .ant-radio-group { display: inline-flex; background: #f1f3f5; border-radius: 8px; padding: 3px; }
+.stocktake-toolbar .ant-radio-button-wrapper { height: 34px; line-height: 32px; border: 0; border-radius: 6px; background: transparent; color: #717681; padding-inline: 12px; font-size: 12px; }
+.stocktake-toolbar .ant-radio-button-wrapper::before { display: none; }
+.stocktake-toolbar .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) { background: white; color: #98603b; box-shadow: 0 1px 4px #19223014; }
+.stocktake-toolbar .ant-select { height: 40px; }
+.stocktake-modal .stocktake-search { height: 40px; padding: 8px 12px; border-radius: 8px; border-color: #e3e6eb; box-shadow: none; }
+.stocktake-modal .stocktake-search .ant-input { padding: 0; min-height: 0; height: auto; border: 0; outline: 0; box-shadow: none; font-size: 13px; background: transparent; }
+.stocktake-toolbar .ant-select input { min-height: 0; }
+.stocktake-search .ant-input-prefix { color: #969ca6; margin-inline-end: 9px; }
+.stocktake-list-heading { display: flex; justify-content: space-between; gap: 12px; padding: 0 14px 9px; color: #9297a1; font-size: 11px; }
+.stocktake-rows { max-height: min(37dvh, 340px); overflow-y: auto; border: 1px solid #e6e9ee; border-radius: 9px; scrollbar-width: thin; scrollbar-color: #d9dce2 transparent; }
+.stocktake-row { padding: 12px 14px; border-bottom: 1px solid #edf0f3; transition: background .15s; }
+.stocktake-row:hover { background: #fafbfc; }
+.stocktake-row:last-child { border-bottom: 0; }
+.stocktake-row.is-different { background: #fffcf7; }
+.stocktake-row:focus-within { background: #fcf8f3; }
+.stocktake-row-main { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.stocktake-item-info { min-width: 0; }
+.stocktake-row-main strong { color: #383d46; font-size: 13px; font-weight: 550; }
+.stocktake-row-main small { display: block; margin-top: 4px; color: #959ba5; font-size: 11px; }
+.stocktake-row-main small b { font-weight: 500; color: #6d7582; }
+.stocktake-row-main label { display: flex; align-items: center; flex-shrink: 0; width: 166px; border: 1px solid #e1e5eb; border-radius: 7px; background: #fff; overflow: hidden; }
+.stocktake-row-main label:focus-within { border-color: #b68a68; box-shadow: 0 0 0 3px #b68a6812; }
+.stocktake-modal input.stocktake-quantity { width: 112px; min-width: 0; height: 38px; padding: 8px 10px; border: 0; border-radius: 0; font-size: 14px; background: transparent; color: #383d46; outline: none; box-shadow: none; }
+.stocktake-modal input.stocktake-quantity::placeholder { color: #aab0b9; font-size: 12px; }
+.stocktake-modal input.stocktake-quantity[aria-invalid="true"] { background: #fff1ef; }
+.stocktake-unit { flex: 1; text-align: center; border-left: 1px solid #edf0f3; color: #9298a2; font-size: 11px; padding: 0 7px; }
+.stocktake-row > .ant-tag { margin-top: 7px; font-size: 10px; }
+.stocktake-line-note { margin-top: 6px; font-size: 11px; color: #8a919d; }
+.stocktake-line-note summary { cursor: pointer; margin-bottom: 4px; }
+.stocktake-hint { margin-top: 9px; font-size: 10px; line-height: 1.6; color: #9298a2; }
+.stocktake-general-note { display: block; margin-top: 16px; color: #596374; font-size: 12px; font-weight: 500; }
+.stocktake-general-note > span { margin-left: 4px; color: #a0a5ae; font-size: 11px; font-weight: 400; }
+.stocktake-general-note .ant-input { font-weight: 400; font-size: 12px; border-color: #e3e6eb; border-radius: 7px; }
+.stocktake-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stocktake-footer > span { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #9298a2; }
+.stocktake-footer > span .app-icon { color: #7c9980; }
+.stocktake-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.stocktake-actions .ant-btn { height: 36px; border-radius: 7px; font-size: 12px; padding-inline: 16px; }
+.revenue-order-link { padding: 4px 0; color: #97603d; font-weight: 600; cursor: pointer; }
+.revenue-order-link:hover, .revenue-detail-link:hover { color: #6a3e20; text-decoration: underline; }
+.revenue-order-link:focus-visible, .revenue-detail-link:focus-visible { outline: 2px solid #b68a68; outline-offset: 3px; border-radius: 3px; }
+.revenue-detail-link { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; color: #8b735e; font-size: 12px; white-space: nowrap; cursor: pointer; }
+.revenue-detail-link .app-icon { font-size: 10px; }
+.revenue-transactions .ant-table-cell { vertical-align: middle; }
+.stocktake-report { padding: 16px 0; color: #30323a; }
+.stocktake-report-heading { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+.stocktake-report-heading h2 { font-size: 22px; font-weight: 650; }
+.stocktake-report-heading p { margin-top: 6px; color: #657080; font-size: 13px; }
+.stocktake-report-table { width: 100%; min-width: 650px; border-collapse: collapse; font-size: 13px; }
+.stocktake-report-table th, .stocktake-report-table td { padding: 10px 12px; border: 1px solid #e6e9ee; text-align: left; }
+.stocktake-report-table th { background: #f6f7f9; }
+.revenue-meta { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin: 24px 0 12px; font-size: 12px; color: #657080; }
+.revenue-cards { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 16px; }
+.revenue-card { display: flex; flex-direction: column; gap: 10px; padding: 24px; border: 1px solid #e6e9ee; border-radius: 12px; background: white; }
+.revenue-card > span { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #657080; }
+.revenue-card > strong { color: #30323a; font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.revenue-card > small { color: #657080; font-size: 12px; }
+.revenue-card-total { background: #fbf3eb; border-color: #e9d6c3; }
+@media (max-width: 767px) {
+  .stocktake-modal { top: 12px; padding-bottom: 12px; }
+  .stocktake-modal .ant-modal-body { max-height: calc(100dvh - 200px); }
+  .stocktake-title h2 { font-size: 17px; }
+  .stocktake-title-icon { width: 38px; height: 38px; }
+  .stocktake-title p { font-size: 11px; }
+  .stocktake-meta { gap: 8px; font-size: 10px; }
+  .stocktake-progress { gap: 12px; }
+  .stocktake-stat { padding-left: 12px; min-width: 56px; }
+  .stocktake-progress strong { font-size: 21px; }
+  .stocktake-progress strong small { font-size: 10px; }
+  .stocktake-progress > div > span { font-size: 10px; }
+  .stocktake-stat strong { font-size: 18px; }
+  .stocktake-toolbar { grid-template-columns: minmax(0, 1fr) 120px; gap: 8px; }
+  .stocktake-toolbar .ant-radio-group { grid-column: 1 / -1; }
+  .stocktake-row { padding: 12px 10px; }
+  .stocktake-row-main { gap: 10px; }
+  .stocktake-row-main label { width: 142px; }
+  .stocktake-modal input.stocktake-quantity { width: 96px; font-size: 16px; padding-inline: 8px; }
+  .stocktake-row-main strong { font-size: 12px; }
+  .stocktake-row-main small { font-size: 10px; }
+  .stocktake-unit { font-size: 10px; padding-inline: 5px; }
+  .stocktake-footer { justify-content: flex-end; }
+  .stocktake-footer > span { display: none; }
+  .stocktake-report-table { min-width: 0; }
+  .stocktake-report-table thead { display: none; }
+  .stocktake-report-table tbody { display: block; }
+  .stocktake-report-table tr { display: grid; grid-template-columns: 1fr 1fr; padding: 10px; margin-bottom: 10px; border: 1px solid #e6e9ee; border-radius: 8px; }
+  .stocktake-report-table td { display: block; padding: 6px; border: 0; overflow-wrap: anywhere; }
+  .stocktake-report-table td:first-child, .stocktake-report-table td:last-child { grid-column: 1 / -1; }
+  .stocktake-report-table td::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #657080; font-size: 11px; }
+  .revenue-cards { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .revenue-card { padding: 18px; }
+  .revenue-card-total { grid-column: 1 / -1; }
+  .revenue-card > strong { font-size: 22px; }
+  .staff-mobile-nav { justify-content: flex-start; overflow-x: auto; }
+  .staff-mobile-nav a { flex: 0 0 76px; }
+}
+
 @layer components {
   .summary-content { padding: 20px; }
   @media (max-width: 767px) { .summary-content { padding: 16px; } }

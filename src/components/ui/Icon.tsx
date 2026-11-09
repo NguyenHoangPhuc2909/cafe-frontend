@@ -6,7 +6,7 @@ import {
   DesktopOutlined, DoubleLeftOutlined, DoubleRightOutlined, EyeOutlined, EyeInvisibleOutlined, FileSearchOutlined, FilterOutlined, HistoryOutlined, LeftOutlined,
   InboxOutlined, LogoutOutlined, MinusOutlined, PhoneOutlined,
   PlusOutlined, ProfileOutlined, QrcodeOutlined, QuestionCircleOutlined,
-  ReadOutlined, RightOutlined,
+  ReadOutlined, RightOutlined, ReloadOutlined,
   SearchOutlined, ShopOutlined, ShoppingCartOutlined,
   ShoppingOutlined, SlidersOutlined, StopOutlined, UserOutlined, WalletOutlined,
 } from '@ant-design/icons';
@@ -25,6 +25,7 @@ const icons = {
   point_of_sale: DesktopOutlined,
   inventory_2: InboxOutlined,
   history: HistoryOutlined,
+  refresh: ReloadOutlined,
   schedule: ClockCircleOutlined,
   person: UserOutlined,
   logout: LogoutOutlined,
