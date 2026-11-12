@@ -22,6 +22,7 @@ import StaffInventoryPage from "./pages/Staff/StaffInventoryPage";
 import StaffRevenuePage from "./pages/Staff/StaffRevenuePage";
 import RequireAdminAuth from "./components/admin/RequireAdminAuth";
 import AdminLayout from "./layouts/AdminLayout";
+import AdminEmployeesPage from "./pages/Admin/AdminEmployeesPage";
 
 function App() {
   return (
@@ -57,7 +58,7 @@ function App() {
                   element={<p>Khu vực quản trị đã sẵn sàng.</p>}
                 />
 
-                <Route path="employees" element={<h2>Quản lý nhân viên</h2>} />
+                <Route path="employees" element={<AdminEmployeesPage />} />
                 <Route path="products" element={<h2>Quản lý thực đơn</h2>} />
                 <Route path="tables" element={<h2>Quản lý bàn</h2>} />
                 <Route path="orders" element={<h2>Quản lý đơn hàng</h2>} />
