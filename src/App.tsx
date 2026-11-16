@@ -23,6 +23,7 @@ import StaffRevenuePage from "./pages/Staff/StaffRevenuePage";
 import RequireAdminAuth from "./components/admin/RequireAdminAuth";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminEmployeesPage from "./pages/Admin/AdminEmployeesPage";
+import AdminProductsPage from "./pages/Admin/AdminProductsPage";
 
 function App() {
   return (
@@ -59,7 +60,7 @@ function App() {
                 />
 
                 <Route path="employees" element={<AdminEmployeesPage />} />
-                <Route path="products" element={<h2>Quản lý thực đơn</h2>} />
+                <Route path="products" element={<AdminProductsPage />} />
                 <Route path="tables" element={<h2>Quản lý bàn</h2>} />
                 <Route path="orders" element={<h2>Quản lý đơn hàng</h2>} />
                 <Route path="inventory" element={<h2>Quản lý kho</h2>} />
