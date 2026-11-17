@@ -12,7 +12,7 @@ export default function Pagination({ page, totalPages, disabled = false, onPageC
   const total = Math.max(1, totalPages);
   const buttonClass = 'pagination-button';
   const pages = (compact: boolean) => paginationItems(page, total, compact).map(item => typeof item === 'number'
-    ? <button key={item} type="button" aria-label={`Trang ${item}`} aria-current={page === item - 1 ? 'page' : undefined} disabled={disabled} onClick={() => onPageChange(item - 1)} className={`${buttonClass} ${page === item - 1 ? '!border-secondary !bg-secondary !text-on-secondary' : 'text-on-surface-variant'}`}>{item}</button>
+    ? <button key={item} type="button" aria-label={`Trang ${item}`} aria-current={page === item - 1 ? 'page' : undefined} disabled={disabled} onClick={() => onPageChange(item - 1)} className={`${buttonClass} ${page === item - 1 ? '!border-primary !bg-primary !text-on-primary' : 'text-on-surface-variant'}`}>{item}</button>
     : <span key={item} aria-hidden="true" className="pagination-gap">…</span>);
 
   return <nav aria-label="Phân trang đơn hàng" className="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5">

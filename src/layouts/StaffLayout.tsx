@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import Icon from '../components/ui/Icon';
 import { useStaffAuth } from '../hooks/useStaffAuth';
+import Brand from '../components/layout/Brand';
 
 const STAFF_NAV = [
   { path: '/staff/pos', label: 'Bán hàng', icon: 'point_of_sale' },
@@ -31,19 +32,20 @@ export default function StaffLayout() {
   }, []);
 
   return <div className="staff-theme staff-shell">
+    <a href="#staff-content" className="skip-link">Đến nội dung chính</a>
     <header className="staff-topbar">
-      <Link to="/staff" className="staff-brand"><span className="staff-brand__mark"><Icon name="coffee" /></span><span>L'Atelier Café</span></Link>
-      <span className="staff-topbar__area">Không gian làm việc</span>
-      <div className="staff-topbar__right"><span className="staff-clock"><Icon name="schedule" />{clock}</span><button type="button" onClick={signOut} aria-label="Đăng xuất" className="ui-icon-button md:hidden"><Icon name="logout" /></button></div>
+      <Link to="/staff" className="staff-brand"><Brand subtitle="Không gian làm việc" /></Link>
+      <span className="staff-topbar__area"><span>Vận hành</span><Icon name="chevron_right" /><strong>{visibleNav.find(item => active(item.path))?.label ?? 'Không gian làm việc'}</strong></span>
+      <div className="staff-topbar__right">{session?.role === 'ADMIN' && <Link to="/admin/dashboard" className="staff-admin-link">Quản trị <Icon name="arrow_forward" /></Link>}<span className="staff-clock"><Icon name="schedule" />{clock}</span><button type="button" onClick={signOut} aria-label="Đăng xuất" className="ui-icon-button md:hidden"><Icon name="logout" /></button></div>
     </header>
     <div className="staff-workspace">
       <aside className="staff-sidebar">
-        <div><p className="staff-nav-label">Vận hành</p><nav aria-label="Điều hướng nhân viên" className="staff-nav">
-          {visibleNav.map(item => <Link key={item.path} to={item.path} aria-current={active(item.path) ? 'page' : undefined} className="staff-nav-link"><Icon name={item.icon} /><span>{item.label}</span></Link>)}
+        <div><div className="workspace-intro"><span className="workspace-intro__dot" /><span>Sẵn sàng cho ca làm việc</span></div><p className="staff-nav-label">Công việc tại quán</p><nav aria-label="Điều hướng nhân viên" className="staff-nav">
+          {visibleNav.map(item => <Link key={item.path} to={item.path} title={item.label} aria-current={active(item.path) ? 'page' : undefined} className="staff-nav-link"><Icon name={item.icon} /><span>{item.label}</span></Link>)}
         </nav></div>
         <div className="staff-profile"><span className="staff-profile__avatar"><Icon name="person" /></span><span className="staff-profile__info"><strong>{session?.username ?? 'Nhân viên'}</strong><small>{session?.role === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên'}</small></span><button type="button" disabled={!session} onClick={signOut} aria-label="Đăng xuất" className="staff-signout"><Icon name="logout" /></button></div>
       </aside>
-      <main className="staff-main"><Outlet /></main>
+      <main id="staff-content" tabIndex={-1} className="staff-main"><Outlet /></main>
     </div>
     <nav ref={mobileNavRef} aria-label="Điều hướng nhân viên trên điện thoại" className="staff-mobile-nav">
       {visibleNav.map(item => <Link key={item.path} to={item.path} aria-current={active(item.path) ? 'page' : undefined}><Icon name={item.icon} /><span>{item.label}</span></Link>)}

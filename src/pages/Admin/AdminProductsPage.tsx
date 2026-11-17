@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Alert, Table, Tag, Button, Input, Select, Tooltip } from "antd";
+import { Alert, Table, Tag, Button, Select, Tooltip } from "antd";
+import SearchField from '../../components/ui/SearchField';
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import AdminProductModal from "../../components/admin/AdminProductModal";
 import { useStaffAuth } from "../../hooks/useStaffAuth";
@@ -100,10 +101,10 @@ export default function AdminProductsPage() {
   const pageError = current?.error ?? currentCategories?.error;
 
   return (
-    <section>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="text-xl font-bold">Quản lý thực đơn</h2>
-        <Button type="primary" icon={<PlusOutlined />} disabled={!currentCategories?.data?.length}
+    <section className="admin-page">
+      <div className="admin-page-heading">
+        <div><h1>Thực đơn của quán</h1><p>Quản lý món, giá bán và công thức pha chế.</p></div>
+        <Button type="primary" icon={<PlusOutlined aria-hidden="true" />} disabled={!currentCategories?.data?.length}
           onClick={() => setEditor({})}>Thêm món</Button>
       </div>
 
@@ -111,14 +112,13 @@ export default function AdminProductsPage() {
         <Alert className="mb-4" type="error" showIcon title={pageError} />
       )}
 
-      <div className="mb-4 flex flex-wrap gap-3">
-        <Input.Search
+      <div className="admin-filter-bar">
+        <SearchField
           className="w-full sm:w-72"
-          aria-label="Tìm theo tên món"
-          placeholder="Tìm tên món"
-          allowClear
+          label="Tìm theo tên món"
+          placeholder="Tìm tên món…"
           value={keyword}
-          onChange={(event) => setKeyword(event.target.value)}
+          onChange={setKeyword}
           onSearch={(value) =>
             setFilters((previous) => ({
               ...previous,
@@ -127,6 +127,7 @@ export default function AdminProductsPage() {
             }))
           }
         />
+        <Button onClick={() => setFilters(previous => ({ ...previous, keyword: keyword.trim(), page: 0 }))}>Tìm kiếm</Button>
 
         <Select<number>
           className="w-full sm:w-52"
@@ -214,7 +215,7 @@ export default function AdminProductsPage() {
             title: "Thao tác",
             key: "actions",
             render: (_, product) => <Tooltip title="Chỉnh sửa món và công thức">
-              <Button icon={<EditOutlined />} aria-label={`Chỉnh sửa ${product.name}`}
+              <Button icon={<EditOutlined aria-hidden="true" />} aria-label={`Chỉnh sửa ${product.name}`}
                 disabled={!currentCategories?.data?.length} onClick={() => setEditor({ id: product.id })} />
             </Tooltip>,
           },

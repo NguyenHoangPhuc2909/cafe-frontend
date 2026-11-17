@@ -41,14 +41,17 @@ function orderStatusLabel(order: OrderResponse) {
 
 export default function StaffOrdersPage({
   mode = "orders",
+  workspace = 'staff',
 }: {
   mode?: ViewMode;
+  workspace?: 'staff' | 'admin';
 }) {
   const screens = Grid.useBreakpoint();
   const desktop = !!screens.lg;
   const [detailOpen, setDetailOpen] = useState(false);
-  const kitchen = mode === "kitchen";
-  const history = mode === "history";
+  const kitchen = workspace === 'staff' && mode === "kitchen";
+  const history = workspace === 'admin' || mode === "history";
+  const canOperate = workspace === 'staff' && mode === 'orders';
   const { session } = useStaffAuth();
   const [params, setParams] = useSearchParams();
   const rawFocusedOrder = Number(params.get('order'));
@@ -148,15 +151,16 @@ export default function StaffOrdersPage({
       orderId={focusedOrderId}
       onClose={closeFocusedOrder}
       onChanged={paymentChanged}
+      readOnly={history}
     />}
     <div ref={scrollRef} className="staff-page-scroll">
       <div className="staff-page-content">
         <header className="staff-page-heading">
-          <div><h1>{title}</h1><p>{description}</p></div>
-          <Link to={mode === 'orders' ? '/staff/kds' : '/staff/orders'} className="staff-text-link">
+          <div><h1>{title}</h1><p>{workspace === 'admin' ? 'Tra cứu đơn hàng và trạng thái thanh toán của quán.' : description}</p></div>
+          {workspace === 'staff' && <Link to={mode === 'orders' ? '/staff/kds' : '/staff/orders'} className="staff-text-link">
             <Icon name={mode === 'orders' ? 'coffee' : 'arrow_back'} />
             {mode === 'orders' ? 'Xem pha chế' : 'Về quản lý đơn'}
-          </Link>
+          </Link>}
         </header>
 
         <div className="staff-list-toolbar">
@@ -189,14 +193,14 @@ export default function StaffOrdersPage({
             </>}
           </section>
           {desktop && <aside aria-label="Chi tiết đơn" className="order-detail"><div className="order-detail__content">
-            {loadingFirstPage ? <OrderDetailSkeleton /> : selected && (mode === 'orders' ? <StaffPaymentPanel embedded key={selected.id} order={selected} onChanged={paymentChanged} /> : <CheckoutSummary embedded order={selected} />)}
+            {loadingFirstPage ? <OrderDetailSkeleton /> : selected && (canOperate ? <StaffPaymentPanel embedded key={selected.id} order={selected} onChanged={paymentChanged} /> : <CheckoutSummary embedded order={selected} />)}
             {kitchen && selected && <CompleteOrderButton embedded key={selected.id} order={selected} onChanged={paymentChanged} />}
           </div></aside>}
         </div>}
       </div>
     </div>
     {!desktop && <Drawer title={selected ? `Chi tiết đơn #${selected.id}` : 'Chi tiết đơn'} placement="bottom" size="auto" open={detailOpen && !!selected} onClose={() => setDetailOpen(false)} styles={{ wrapper: { maxHeight: '85dvh' }, section: { maxHeight: '85dvh', minHeight: 240 }, body: { padding: 0 } }}>
-      <div className="order-detail__content mobile-order-detail">{selected && (mode === 'orders' ? <StaffPaymentPanel embedded key={selected.id} order={selected} onChanged={paymentChanged} /> : <CheckoutSummary embedded order={selected} />)}
+      <div className="order-detail__content mobile-order-detail">{selected && (canOperate ? <StaffPaymentPanel embedded key={selected.id} order={selected} onChanged={paymentChanged} /> : <CheckoutSummary embedded order={selected} />)}
         {kitchen && selected && <CompleteOrderButton embedded key={selected.id} order={selected} onChanged={paymentChanged} />}
       </div>
     </Drawer>}

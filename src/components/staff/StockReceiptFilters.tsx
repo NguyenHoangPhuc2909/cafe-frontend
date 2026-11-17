@@ -66,7 +66,7 @@ export default function StockReceiptFilters({
           <input
             type="date"
             name="fromDate"
-            className="min-h-control rounded-lg border border-outline-variant px-3"
+            className="min-h-control rounded-lg border border-control-border px-3"
           />
         </label>
 
@@ -75,7 +75,7 @@ export default function StockReceiptFilters({
           <input
             type="date"
             name="toDate"
-            className="min-h-control rounded-lg border border-outline-variant px-3"
+            className="min-h-control rounded-lg border border-control-border px-3"
           />
         </label>
 
@@ -84,7 +84,7 @@ export default function StockReceiptFilters({
           <select
             name="item"
             defaultValue=""
-            className="min-h-control rounded-lg border border-outline-variant px-3"
+            className="min-h-control rounded-lg border border-control-border px-3"
           >
             <option value="">Tất cả mặt hàng</option>
 

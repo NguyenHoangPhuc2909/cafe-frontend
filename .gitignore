@@ -26,3 +26,6 @@ dist-ssr
 
 # Documentation and its archive stay local
 /docs/archive/
+
+# Local UI review screenshots and verification
+/docs/ui-review/

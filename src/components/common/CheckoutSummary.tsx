@@ -16,7 +16,7 @@ export default function CheckoutSummary({
       aria-label="Thông tin đơn hàng"
       className={embedded ? "summary-content" : "rounded-2xl border border-outline-variant/30 bg-surface-container-lowest p-5 sm:p-6"}
     >
-      {showHeading && <><p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+      {showHeading && <><p className="text-xs font-semibold uppercase tracking-wider text-on-secondary-container">
         {order.tableName ?? 'Nhận món tại quầy'}
       </p>
 
@@ -24,7 +24,7 @@ export default function CheckoutSummary({
         Đơn #{order.id}
       </h2></>}
 
-      {order.orderType && <p className="mt-2 text-sm font-semibold text-secondary">
+      {order.orderType && <p className="mt-2 text-sm font-semibold text-on-secondary-container">
         {order.orderType === 'TAKEAWAY' ? 'Mang đi' : 'Tại quán'}
       </p>}
       {!order.tableName && <p className="mt-2 text-sm text-on-surface-variant">

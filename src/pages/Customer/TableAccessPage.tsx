@@ -43,7 +43,7 @@ function TableAccess({ qrCode }: { qrCode: string }) {
   </section>;
 
   return <section className="customer-panel customer-table-access" aria-busy={loading || connecting}>
-    <span aria-hidden="true" className="icon-slot mb-4 text-5xl text-secondary"><Icon name="qr_code_2" /></span>
+    <span aria-hidden="true" className="icon-slot mb-4 text-5xl text-on-secondary-container"><Icon name="qr_code_2" /></span>
     <h1 className="font-headline-lg text-2xl font-bold text-primary">{loading ? 'Đang tìm bàn…' : table?.name ?? 'Xác nhận bàn'}</h1>
     {error && <p role="alert" className="mt-4 rounded-xl bg-error-container/30 p-4 text-sm text-error">{error}</p>}
     {!loading && table && <>

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cafe UI — Dữ liệu mô phỏng</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" />
+    <style>
+      .preview-label { position: fixed; inset: 0 0 auto; height: 28px; z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 0 8px; background: #563B2C; color: white; font: 11px system-ui; }
+      #root { padding-top: 28px; }
+      #root .staff-shell { top: 28px; height: calc(100dvh - 28px); }
+      #root .admin-shell { height: calc(100dvh - 28px); }
+    </style>
+  </head>
+  <body>
+    <aside class="preview-label">XEM THIẾT KẾ · Dữ liệu mô phỏng · Không gửi API</aside>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>

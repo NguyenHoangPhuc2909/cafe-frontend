@@ -163,9 +163,9 @@ export default function AdminEmployeesPage() {
   const tableError = statusError ?? current?.error;
 
   return (
-    <section>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-xl font-bold">Quản lý nhân viên</h2>
+    <section className="admin-page">
+      <div className="admin-page-heading">
+        <div><h1>Đội ngũ L’Atelier</h1><p>Quản lý thông tin, tài khoản và trạng thái làm việc.</p></div>
         <Button type="primary" onClick={() => setOpen(true)}>
           Thêm nhân viên
         </Button>

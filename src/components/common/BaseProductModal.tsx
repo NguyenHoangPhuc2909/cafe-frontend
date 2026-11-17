@@ -73,7 +73,7 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
           <span aria-hidden="true" className="icon-slot text-xl"><Icon name="close" /></span>
         </button>
         <div className="relative h-36 shrink-0 bg-surface-container sm:h-44 md:h-auto md:w-[42%]">
-          <img src={product.imageUrl || PRODUCT_PLACEHOLDER} alt={product.name}
+          <img src={product.imageUrl || PRODUCT_PLACEHOLDER} alt={product.name} width={480} height={480}
             onError={event => { if (!event.currentTarget.src.endsWith(PRODUCT_PLACEHOLDER)) event.currentTarget.src = PRODUCT_PLACEHOLDER; }}
             className="h-full w-full object-cover" />
           {product.badge && <span className="absolute left-4 top-4 rounded-md bg-primary px-3 py-1 text-xs font-semibold text-on-primary">{product.badge}</span>}
@@ -81,7 +81,7 @@ function ProductModalContent({ product, onClose, onConfirm, variant = 'customer'
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-secondary">{product.category}</p>
+              <p className="mb-2 text-xs font-medium text-on-secondary-container">{product.category}</p>
               <h2 id="product-modal-title" className="break-words font-headline-md text-xl font-bold leading-snug text-primary sm:text-2xl">{product.name}</h2>
               {product.description && <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">{product.description}</p>}
               <p className="mt-4 font-headline-md text-xl font-bold text-primary">{formatCurrency(unitPrice)}</p>

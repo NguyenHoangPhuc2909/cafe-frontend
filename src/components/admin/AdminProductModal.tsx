@@ -105,7 +105,7 @@ export default function AdminProductModal({ token, productId, categories, onClos
           <Form.Item name={["product", "imageUrl"]} label="Đường dẫn ảnh"><Input placeholder="https://..." /></Form.Item>
           {packaged ? <Alert type="info" showIcon title="Món đóng gói dùng tồn kho sản phẩm, không sử dụng công thức nguyên liệu." /> : <>
             <h3 className="mb-2 font-semibold">Công thức cho 1 phần</h3>
-            <p className="mb-3 text-sm text-gray-500">Nhập định lượng theo đơn vị của nguyên liệu. Mặc định là M; khi bật M/L, cần nhập đủ cả hai size. Ly mang đi được trừ tự động.</p>
+            <p className="mb-3 text-sm text-on-surface-variant">Nhập định lượng theo đơn vị của nguyên liệu. Mặc định là M; khi bật M/L, cần nhập đủ cả hai size. Ly mang đi được trừ tự động.</p>
             <Form.List name="recipes">
               {(fields, { add, remove }) => <>
                 {fields.map(({ key, name, ...rest }) => <div key={key} className="mb-2 flex flex-wrap items-start gap-2 rounded border border-gray-200 p-3">
@@ -126,7 +126,7 @@ export default function AdminProductModal({ token, productId, categories, onClos
                 <Button icon={<PlusOutlined />} onClick={() => add({ size: "M" })} disabled={!ingredients?.length || saving || loading}>Thêm nguyên liệu</Button>
               </>}
             </Form.List>
-            {ingredients?.length === 0 && <p className="mt-2 text-amber-700">Chưa có nguyên liệu. Cần tạo nguyên liệu trước khi lưu món pha chế.</p>}
+            {ingredients?.length === 0 && <p className="mt-2 text-warning">Chưa có nguyên liệu. Cần tạo nguyên liệu trước khi lưu món pha chế.</p>}
           </>}
         </Form>
       </Spin>

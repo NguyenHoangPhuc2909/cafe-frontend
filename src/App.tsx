@@ -24,6 +24,8 @@ import RequireAdminAuth from "./components/admin/RequireAdminAuth";
 import AdminLayout from "./layouts/AdminLayout";
 import AdminEmployeesPage from "./pages/Admin/AdminEmployeesPage";
 import AdminProductsPage from "./pages/Admin/AdminProductsPage";
+import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
+import AdminReportsPage from "./pages/Admin/AdminReportsPage";
 
 function App() {
   return (
@@ -56,15 +58,15 @@ function App() {
 
                 <Route
                   path="dashboard"
-                  element={<p>Khu vực quản trị đã sẵn sàng.</p>}
+                  element={<AdminDashboardPage />}
                 />
 
                 <Route path="employees" element={<AdminEmployeesPage />} />
                 <Route path="products" element={<AdminProductsPage />} />
-                <Route path="tables" element={<h2>Quản lý bàn</h2>} />
-                <Route path="orders" element={<h2>Quản lý đơn hàng</h2>} />
-                <Route path="inventory" element={<h2>Quản lý kho</h2>} />
-                <Route path="reports" element={<h2>Báo cáo doanh thu</h2>} />
+                <Route path="tables" element={<StaffTablesPage workspace="admin" />} />
+                <Route path="orders" element={<StaffOrdersPage key="admin-history" mode="history" workspace="admin" />} />
+                <Route path="inventory" element={<StaffInventoryPage readOnly />} />
+                <Route path="reports" element={<AdminReportsPage />} />
               </Route>
             </Route>
 

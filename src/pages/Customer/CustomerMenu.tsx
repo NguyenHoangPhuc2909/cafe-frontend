@@ -1,6 +1,7 @@
 import SelectField from '../../components/ui/SelectField';
+import SearchField from '../../components/ui/SearchField';
 import Icon from '../../components/ui/Icon';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import BaseProductCard from '../../components/common/BaseProductCard';
 import BaseProductModal from '../../components/common/BaseProductModal';
@@ -16,7 +17,6 @@ export default function CustomerMenu() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortMode, setSortMode] = useState<SortMode>('default');
-  const searchRef = useRef<HTMLInputElement>(null);
   const categories = ['Tất cả', ...new Set(products.map(product => product.category))];
   const category = categories.includes(activeCategory) ? activeCategory : 'Tất cả';
   const query = searchQuery.trim().toLocaleLowerCase('vi');
@@ -28,12 +28,15 @@ export default function CustomerMenu() {
 
   return <>
     <section className="menu-hero" aria-label="Lời chào từ quán">
-      <div className="min-w-0"><p className="ui-eyebrow">L'Atelier · Một chút thư thả</p>
-        <h1>Món quen, một ngày mới.</h1>
-        <p className="mt-3 max-w-lg text-sm leading-relaxed text-on-surface-variant">Chọn một ly yêu thích. Ngồi lại một chút, để quán lo phần còn lại.</p>
-        <a href="#customer-menu" className="mt-4 inline-flex min-h-control items-center gap-2 text-sm font-semibold text-primary">Khám phá thực đơn <span aria-hidden="true" className="icon-slot text-lg"><Icon name="arrow_downward" /></span></a>
+      <div className="menu-hero__copy"><p className="menu-hero__intro">Chào bạn, mời một ly nhé.</p>
+        <h1>Dành một chút<br />thời gian cho mình.</h1>
+        <p className="menu-hero__description">Cà phê đậm đà, trà thanh mát hay một món quen thuộc. Hôm nay, bạn chọn gì?</p>
+        <a href="#customer-menu" className="menu-hero__cta">Chọn món yêu thích <Icon name="arrow_downward" /></a>
       </div>
-      <img src="/images/ca_phe_trung.png" alt="Cà phê trứng tại L’Atelier" className="menu-hero__image" />
+      <figure className="menu-hero__visual">
+        <img src="/images/ca_phe_trung.png" alt="Ly cà phê trứng với lớp kem mịn" width={520} height={420} fetchPriority="high" className="menu-hero__image" />
+        <figcaption>Một ly cà phê. Một khoảng bình yên.</figcaption>
+      </figure>
     </section>
 
     <div className="menu-toolbar space-y-3">
@@ -43,11 +46,7 @@ export default function CustomerMenu() {
         </button>)}
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative min-w-0 flex-1">
-          <span aria-hidden="true" className="icon-slot pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-xl text-outline"><Icon name="search" /></span>
-          <input ref={searchRef} id="menu-search" type="search" aria-label="Tìm món trong thực đơn" value={searchQuery} onChange={event => setSearchQuery(event.target.value)} placeholder="Tìm món bạn thích…" className="min-h-control w-full rounded-xl border border-outline-variant/60 bg-surface-container-lowest pl-11 pr-12 text-base sm:text-sm" />
-          {searchQuery && <button type="button" aria-label="Xóa tìm kiếm" className="absolute right-0 top-0 flex h-control w-control items-center justify-center text-outline" onClick={() => { setSearchQuery(''); searchRef.current?.focus(); }}><span aria-hidden="true" className="icon-slot text-xl"><Icon name="close" /></span></button>}
-        </div>
+        <SearchField label="Tìm món trong thực đơn" value={searchQuery} onChange={setSearchQuery} placeholder="Tìm món bạn thích…" className="min-w-0 flex-1" />
         <SelectField label="Sắp xếp thực đơn" value={sortMode} onChange={setSortMode} className="w-full sm:w-44 sm:shrink-0" options={SORT_CYCLE.map(mode => ({ value: mode, label: SORT_LABELS[mode] }))} />
       </div>
     </div>
@@ -57,7 +56,7 @@ export default function CustomerMenu() {
       <span>{notice}</span>{notice && <Link className="inline-flex min-h-control items-center gap-2 font-semibold" to="/cart">Xem giỏ <span aria-hidden="true" className="icon-slot text-lg"><Icon name="arrow_forward" /></span></Link>}
     </div>
     <section id="customer-menu" className="scroll-mt-64" aria-labelledby="menu-title" aria-busy={isLoading}>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-2"><div><p className="ui-eyebrow mb-2">Pha chế từ sự tận tâm</p><h2 id="menu-title" className="text-2xl font-bold text-primary">{category === 'Tất cả' ? 'Thực đơn hôm nay' : category}</h2></div>
+      <div className="menu-section-heading"><div><h2 id="menu-title" className="text-2xl font-bold text-primary">{category === 'Tất cả' ? 'Thực đơn hôm nay' : category}</h2><p className="mt-2 text-sm text-on-surface-variant">Tìm hương vị hợp với tâm trạng của bạn.</p></div>
         <p className="text-xs text-on-surface-variant">{initialLoading ? 'Đang chuẩn bị thực đơn…' : isLoading ? 'Đang cập nhật thực đơn…' : menuError && products.length === 0 ? 'Chưa tải được thực đơn' : `${filtered.length} món${searchQuery ? ` · Kết quả cho “${searchQuery}”` : ' đang phục vụ'}`}</p>
       </div>
       {initialLoading ? <ProductGridSkeleton /> : menuError && products.length === 0 ? null : filtered.length === 0 ? <div className="ui-panel flex flex-col items-center gap-3 px-5 py-14 text-center">

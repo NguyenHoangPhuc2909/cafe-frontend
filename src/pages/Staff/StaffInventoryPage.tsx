@@ -31,7 +31,7 @@ function InventoryTableColumns() {
   );
 }
 
-export default function StaffInventoryPage() {
+export default function StaffInventoryPage({ readOnly = false }: { readOnly?: boolean }) {
   const [messageApi, contextHolder] = message.useMessage({ maxCount: 1 });
   const { session } = useStaffAuth();
   const token = session?.accessToken;
@@ -104,7 +104,7 @@ export default function StaffInventoryPage() {
             >
               Lịch sử nhập kho
             </button>
-            <button
+            {!readOnly && <button
               type="button"
               disabled={!canReceive}
               onClick={() => {
@@ -113,7 +113,7 @@ export default function StaffInventoryPage() {
               className="min-h-control rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary disabled:opacity-40"
             >
               Nhập kho
-            </button>
+            </button>}
           </div>
         </div>
 

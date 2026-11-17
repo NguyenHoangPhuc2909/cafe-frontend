@@ -20,12 +20,13 @@ export default function CheckoutPage() {
   const screens = Grid.useBreakpoint();
   const deadline = order ? Date.parse(order.paymentExpiresAt) : undefined;
   const { countdown, remainingSeconds } = usePaymentCountdown(deadline);
-  if (!order) return <div className="customer-flow-page">
+  if (!order) return <div className="customer-flow-page customer-panel customer-empty-state">
+    <span className="customer-empty-state__icon"><Icon name="receipt_long" /></span>
     <h1 className="text-2xl font-bold text-primary">Các đơn đã gọi</h1>
     {isLoadingOrders ? <p role="status" className="my-4">Đang tải đơn của phiên bàn…</p>
-      : <p className="my-4">Chưa có đơn để hiển thị trong trang này.</p>}
+      : <p className="my-4">Các món bạn đã gọi sẽ xuất hiện tại đây. Chọn món yêu thích để bắt đầu nhé.</p>}
     {error && <p role="alert" className="my-4 text-error">{error}</p>}
-    <button type="button" onClick={reloadOrders} className="ui-button">Tải lại đơn</button>
+    <div className="mt-5 flex flex-wrap justify-center gap-3"><Link to="/" className="ui-button ui-button--primary">Khám phá thực đơn</Link><button type="button" onClick={reloadOrders} disabled={isLoadingOrders} className="ui-button"><Icon name="refresh" />Tải lại đơn</button></div>
     {totalPages > 1 && <Pagination page={page} totalPages={totalPages} disabled={isLoadingOrders} onPageChange={setPage} />}
     <Link to="/cart" className="ui-button mt-4">Về giỏ hàng</Link>
   </div>;

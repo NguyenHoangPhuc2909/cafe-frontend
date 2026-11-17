@@ -1,3 +1,4 @@
+import SearchField from "../../components/ui/SearchField";
 import { Drawer, Grid, Popconfirm } from 'antd';
 import Icon from '../../components/ui/Icon';
 import { Skeleton, TablesSkeleton } from "../../components/ui/Skeleton";
@@ -40,7 +41,7 @@ const states = {
   },
 };
 
-export default function StaffTablesPage() {
+export default function StaffTablesPage({ workspace = 'staff' }: { workspace?: 'staff' | 'admin' }) {
   const screens = Grid.useBreakpoint();
   const desktop = !!screens.lg;
   const [detailOpen, setDetailOpen] = useState(false);
@@ -84,7 +85,7 @@ export default function StaffTablesPage() {
   };
 
   const details = selected ? <div className="table-detail-body">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-secondary">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-on-secondary-container">
                       Chi tiết bàn
                     </p>
                     <h2 className="mt-2 break-words text-2xl font-bold text-primary">
@@ -129,18 +130,18 @@ export default function StaffTablesPage() {
                           </p>
                         )}
                         <Link
-                          to={`/staff/orders?session=${selected.session.id}`}
+                          to={`/${workspace}/orders?session=${selected.session.id}`}
                           className="mt-4 flex min-h-control items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-on-primary"
                         >
                           Xem đơn trong phiên
                         </Link>
                         <Link
-                          to={`/staff/history?session=${selected.session.id}`}
+                          to={workspace === 'admin' ? `/admin/orders?session=${selected.session.id}&filter=all` : `/staff/history?session=${selected.session.id}`}
                           className="mt-2 flex min-h-control items-center justify-center rounded-xl border border-primary px-4 text-sm font-semibold text-primary"
                         >
-                          Lịch sử phiên hiện tại
+                          {workspace === 'admin' ? 'Xem tất cả đơn trong phiên' : 'Lịch sử phiên hiện tại'}
                         </Link>
-                        <div className="mt-5 border-t border-outline-variant/30 pt-4">
+                        {workspace === 'staff' && <div className="mt-5 border-t border-outline-variant/30 pt-4">
                           <p className="mb-3 text-xs leading-relaxed text-on-surface-variant">
                             Kết thúc phiên sau khi khách rời bàn. Các đơn phải hoàn thành hoặc đã hết hạn.
                           </p>
@@ -153,7 +154,7 @@ export default function StaffTablesPage() {
                               {isClosing ? 'Đang kết thúc phiên…' : 'Kết thúc phiên'}
                             </button>
                           </Popconfirm>
-                        </div>
+                        </div>}
                       </>
                     )}
                     {tableState(selected) === "idle" && (
@@ -178,8 +179,7 @@ export default function StaffTablesPage() {
                       </Link>
                     )}
                     <p className="mt-4 text-xs leading-relaxed text-on-surface-variant">
-                      BE chưa có API đóng phiên. Đơn mẫu phục vụ xong không tự
-                      làm phiên thật của bàn đóng lại.
+                      Trạng thái bàn và phiên được cập nhật từ quán.
                     </p>
   </div> : null;
 
@@ -222,15 +222,8 @@ export default function StaffTablesPage() {
               </button>
             ))}
           </div>
-          <label className="mt-5 block sm:max-w-sm">
-            <span className="sr-only">Tìm tên hoặc ID bàn</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Tìm tên hoặc ID bàn…"
-              className="min-h-control w-full rounded-xl border border-outline-variant/40 bg-surface px-4 text-base outline-none focus:border-primary sm:text-sm"
-            />
-          </label>
+          <SearchField label="Tìm tên hoặc ID bàn" placeholder="Tìm tên hoặc ID bàn…"
+            value={query} onChange={setQuery} className="mt-5 w-full sm:max-w-sm" />
           {notice && (
             <p
               role="status"

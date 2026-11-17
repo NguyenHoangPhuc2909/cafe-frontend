@@ -28,12 +28,12 @@ function CustomerShell() {
       className={`customer-shell min-h-screen min-w-0 flex flex-col selection:bg-secondary-fixed selection:text-primary ${showCartBar ? "customer-shell--with-cart" : ""}`}
     >
       <Header />
-      <main className={`flex-grow min-w-0 mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 md:py-8 ${pathname === "/" ? "max-w-7xl" : "max-w-[1104px]"}`}>
+      <main id="main-content" tabIndex={-1} className={`flex-grow min-w-0 mx-auto w-full px-4 sm:px-6 lg:px-8 py-5 md:py-8 ${pathname === "/" ? "max-w-7xl" : "max-w-[1104px]"}`}>
         <div
           className="customer-session-strip"
           aria-live="polite"
         >
-          <p className="flex min-w-0 items-center gap-2.5 break-words text-primary"><span aria-hidden="true" className="icon-slot shrink-0 text-xl text-secondary"><Icon name={session ? "table_restaurant" : "qr_code_2"} /></span><span>
+          <p className="flex min-w-0 items-center gap-2.5 break-words text-primary"><span aria-hidden="true" className="icon-slot shrink-0 text-xl text-on-secondary-container"><Icon name={session ? "table_restaurant" : "qr_code_2"} /></span><span>
             {isChecking
               ? <span role="status"><span className="sr-only">Đang kiểm tra phiên bàn…</span><Skeleton className="h-4 w-44 max-w-full" /></span>
               : session

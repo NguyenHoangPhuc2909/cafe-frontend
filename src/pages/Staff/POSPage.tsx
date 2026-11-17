@@ -1,6 +1,8 @@
 import Icon from "../../components/ui/Icon";
+import SearchField from "../../components/ui/SearchField";
 import { ProductGridSkeleton } from "../../components/ui/Skeleton";
 import React, { useCallback, useState, useRef, useEffect } from "react";
+import { Grid } from 'antd';
 import BaseProductCard from "../../components/common/BaseProductCard";
 import BaseProductModal from "../../components/common/BaseProductModal";
 import OrderTicket from "../../components/staff/OrderTicket";
@@ -32,6 +34,17 @@ const POSPage: React.FC = () => {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [showMobileCart, setShowMobileCart] = useState(false);
+  const screens = Grid.useBreakpoint();
+  const mobileTicketOpen = showMobileCart && !screens.md;
+  const ticketPanelRef = useRef<HTMLElement>(null);
+  const ticketTriggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!mobileTicketOpen) return;
+    const trigger = ticketTriggerRef.current;
+    ticketPanelRef.current?.querySelector<HTMLButtonElement>('[aria-label="Đóng giỏ hàng"]')?.focus();
+    return () => { if (trigger?.isConnected) trigger.focus(); };
+  }, [mobileTicketOpen]);
 
   // Modal state
   const [modalProduct, setModalProduct] = useState<Product | null>(null);
@@ -199,9 +212,9 @@ const POSPage: React.FC = () => {
       .reduce((s, i) => s + i.quantity, 0);
 
   return (
-    <div className="flex-1 flex flex-col md:grid md:grid-cols-12 h-full overflow-hidden bg-background relative">
+    <div className="pos-workspace">
       {/* ════════ LEFT 65% — MENU CATALOG ════════ */}
-      <section className="pos-catalog min-w-0 flex-1 md:col-span-7 lg:col-span-8 flex flex-col h-full border-r border-outline-variant/40 overflow-hidden">
+      <section aria-label="Thực đơn tại quầy" inert={mobileTicketOpen} className="pos-catalog min-w-0 flex-1 flex flex-col h-full overflow-hidden">
         {/* Header */}
         <div className="px-5 pt-4 pb-3 bg-surface border-b border-outline-variant/30 shrink-0 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -219,7 +232,7 @@ const POSPage: React.FC = () => {
               </h1>
             </div>
             <div className="flex shrink-0 items-center gap-2">
-              <span className="rounded-md bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-secondary">
+              <span className="rounded-md bg-surface-container px-2.5 py-1 text-[12px] font-semibold text-on-secondary-container">
                 {isLoading
                   ? "Đang tải…"
                   : error
@@ -229,38 +242,8 @@ const POSPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Search bar */}
-          <div className="relative flex items-center">
-            <span
-              aria-hidden="true"
-              className={`icon-slot absolute left-3.5 text-[18px] pointer-events-none transition-colors ${
-                searchQuery ? "text-primary" : "text-outline"
-              }`}
-            >
-              <Icon name="search" />
-            </span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Tìm món trong thực đơn"
-              placeholder="Tìm tên món, mô tả…"
-              className="min-h-control w-full pl-10 pr-10 py-0 bg-surface-container-lowest border border-outline-variant/40
-                rounded-xl text-base sm:text-[13px] font-body-md text-on-surface placeholder:text-outline
-                focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                aria-label="Xóa tìm kiếm"
-                className="absolute right-0 flex h-control w-control items-center justify-center text-outline hover:text-error transition-colors"
-              >
-                <span aria-hidden="true" className="icon-slot text-[17px]">
-                  <Icon name="close" />
-                </span>
-              </button>
-            )}
-          </div>
+          <SearchField label="Tìm món trong thực đơn" placeholder="Tìm tên món, mô tả…"
+            value={searchQuery} onChange={setSearchQuery} />
 
           {/* Category pills */}
           <div className="flex items-center gap-2 overflow-x-auto pb-0.5 custom-scroll">
@@ -272,7 +255,7 @@ const POSPage: React.FC = () => {
                   onClick={() => setActiveCategory(cat.value)}
                   aria-pressed={active}
                   className={`inline-flex items-center gap-1.5 min-h-control px-3.5 py-2 rounded-xl
-                    font-label-caps text-[11px] font-semibold transition-all duration-200 shrink-0 border
+                    font-label-caps text-[12px] font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-200 shrink-0 border
                     ${
                       active
                         ? "bg-primary text-on-primary border-transparent"
@@ -284,7 +267,7 @@ const POSPage: React.FC = () => {
                   </span>
                   {cat.label}
                   <span
-                    className={`px-1.5 py-0.5 rounded-md text-[9px] ${
+                    className={`px-1.5 py-0.5 rounded-md text-[12px] ${
                       active
                         ? "bg-on-primary/20 text-on-primary"
                         : "bg-surface-container-highest text-on-surface-variant"
@@ -336,7 +319,7 @@ const POSPage: React.FC = () => {
           <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center p-8">
             <span
               aria-hidden="true"
-              className="icon-slot text-[48px] text-outline opacity-40"
+              className="icon-slot text-[48px] text-on-surface-variant opacity-40"
             >
               <Icon name="search_off" />
             </span>
@@ -349,7 +332,7 @@ const POSPage: React.FC = () => {
                 setActiveCategory(null);
               }}
               className="mt-1 px-4 py-2 rounded-xl border border-primary text-primary text-[13px]
-                font-label-caps hover:bg-primary hover:text-on-primary transition-all active:scale-95"
+                font-label-caps hover:bg-primary hover:text-on-primary transition-[background-color,border-color,color,box-shadow,transform] active:scale-95"
             >
               Xem tất cả món
             </button>
@@ -383,10 +366,13 @@ const POSPage: React.FC = () => {
         {/* ── Mobile Cart Summary FAB ── */}
         <div className="md:hidden absolute bottom-4 left-4 right-4 z-20">
           <button
+            ref={ticketTriggerRef}
+            aria-expanded={mobileTicketOpen}
+            aria-controls="pos-ticket"
             onClick={() => setShowMobileCart(true)}
             className="w-full flex items-center justify-between bg-primary text-on-primary
-              px-5 py-3.5 rounded-2xl shadow-[0_8px_24px_rgba(161,61,23,0.35)]
-              active:scale-95 transition-all font-label-caps"
+              px-5 py-3.5 rounded-2xl shadow-lg
+              active:scale-95 transition-[background-color,border-color,color,box-shadow,transform] font-label-caps"
           >
             <div className="flex items-center gap-2">
               <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center text-[12px] font-bold">
@@ -406,7 +392,7 @@ const POSPage: React.FC = () => {
         {/* Status bar (Desktop only) */}
         <div
           className="hidden md:flex h-9 border-t border-outline-variant/30 bg-surface items-center justify-between px-4
-          text-[10px] font-label-caps text-on-surface-variant shrink-0"
+          text-[12px] font-label-caps text-on-surface-variant shrink-0"
         >
           <div className="flex items-center gap-4">
             <span>Thực đơn tại quầy</span>
@@ -428,10 +414,19 @@ const POSPage: React.FC = () => {
 
       {/* ════════ RIGHT 35% — ORDER TICKET (Desktop or Mobile Drawer) ════════ */}
       <section
+        ref={ticketPanelRef}
+        id="pos-ticket"
+        aria-label="Phiếu tạm"
+        onKeyDown={event => {
+          if (event.key === 'Escape' && mobileTicketOpen) {
+            event.preventDefault();
+            setShowMobileCart(false);
+          }
+        }}
         className={`
-        absolute inset-0 z-50 bg-surface md:static md:z-auto
+        pos-ticket absolute inset-0 z-50 bg-surface md:static md:z-auto
         flex flex-col h-full overflow-hidden transition-transform duration-300
-        min-w-0 md:col-span-5 lg:col-span-4
+        min-w-0
         ${showMobileCart ? "visible translate-y-0" : "invisible translate-y-full md:visible md:translate-y-0"}
       `}
       >

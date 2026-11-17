@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
 import {
-  AppstoreOutlined, ArrowDownOutlined, ArrowLeftOutlined, ArrowRightOutlined,
+  AppstoreOutlined, BarChartOutlined, DashboardOutlined, ArrowDownOutlined, ArrowLeftOutlined, ArrowRightOutlined,
   CheckOutlined, ClockCircleOutlined, CloseCircleOutlined,
   CloseOutlined, DisconnectOutlined, CoffeeOutlined, DeleteOutlined,
   DesktopOutlined, DoubleLeftOutlined, DoubleRightOutlined, EyeOutlined, EyeInvisibleOutlined, FileSearchOutlined, FilterOutlined, HistoryOutlined, LeftOutlined,
@@ -15,6 +15,8 @@ import {
 // Named imports let the production build include only the icons used here.
 const icons = {
   coffee: CoffeeOutlined,
+  dashboard: DashboardOutlined,
+  chart: BarChartOutlined,
   local_cafe: CoffeeOutlined,
   shopping_bag: ShoppingOutlined,
   add_shopping_cart: ShoppingCartOutlined,

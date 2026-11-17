@@ -136,7 +136,7 @@ export default function StockReceiptModal({
   };
 
   const fieldClass =
-    "mt-2 min-h-control w-full rounded-xl border border-outline-variant " +
+    "mt-2 min-h-control w-full rounded-xl border border-control-border " +
     "bg-white px-3 py-2 disabled:opacity-60";
 
   return (

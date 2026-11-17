@@ -1,0 +1,58 @@
+{
+  "name": "L’Atelier Café",
+  "direction": "A bright, warm neighborhood café: cream, coffee brown, caramel and clear Vietnamese typography.",
+  "palette": {
+    "primary": "#563B2C",
+    "primaryHover": "#442E22",
+    "primaryActive": "#352319",
+    "background": "#FAF7F2",
+    "surface": "#ffffff",
+    "text": "#26332C",
+    "secondaryText": "#75665A",
+    "accent": "#C78B50",
+    "accentSoft": "#F8E5CF",
+    "selected": "#F3E8DA",
+    "success": "#2E6545",
+    "warning": "#80520E",
+    "error": "#B13D32",
+    "info": "#315F82",
+    "border": "#E8DED2",
+    "controlBorder": "#9B8878"
+  },
+  "typography": {
+    "family": "Be Vietnam Pro, system-ui, sans-serif",
+    "weights": [400, 500, 600, 700, 800],
+    "principles": ["Sentence case", "Vietnamese diacritics", "Tabular currency and counts", "Balanced headings"]
+  },
+  "controls": {
+    "desktopHeight": 40,
+    "mobileHeight": 44,
+    "largeHeight": 48,
+    "radius": 8,
+    "panelRadius": 12,
+    "modalRadius": 16,
+    "fontSize": 14,
+    "searchComponent": "src/components/ui/SearchField.tsx",
+    "principles": ["Match native and Ant Design controls", "Do not style internal library inputs as standalone fields", "Use coffee brown for primary actions and visible focus", "Use dark text on caramel; never small caramel text on white"]
+  },
+  "layout": {
+    "customer": "Responsive menu grid; persistent cart access; readable order and payment status.",
+    "staff": "Light navigation; cream workspace; compact POS with 320–380px ticket; independently scrollable work areas; tablet icon rail.",
+    "admin": "Light management workspace with task groups, scrollable data tables and no links into Staff operations.",
+    "mobileNavigation": "Scrollable navigation keeps all existing destinations accessible."
+  },
+  "sources": {
+    "tokens": "src/index.css",
+    "compositions": "src/styles/atelier.css",
+    "antd": "src/components/ui/UIProvider.tsx",
+    "brand": "src/components/layout/Brand.tsx",
+    "specification": "docs/ui-redesign.md",
+    "reference": ".agents/skills/cafe-ui/references/design-system.md"
+  },
+  "constraints": [
+    "Preserve API contracts, authentication and role boundaries.",
+    "Keep workflow and financial state driven by server responses.",
+    "Do not invent business metrics for unfinished screens.",
+    "Maintain visible keyboard focus and reduced-motion behavior."
+  ]
+}
