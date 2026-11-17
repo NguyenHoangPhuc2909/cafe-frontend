@@ -26,6 +26,7 @@ import AdminEmployeesPage from "./pages/Admin/AdminEmployeesPage";
 import AdminProductsPage from "./pages/Admin/AdminProductsPage";
 import AdminDashboardPage from "./pages/Admin/AdminDashboardPage";
 import AdminReportsPage from "./pages/Admin/AdminReportsPage";
+import AdminCategoriesPage from "./pages/Admin/AdminCategoriesPage";
 
 function App() {
   return (
@@ -63,6 +64,7 @@ function App() {
 
                 <Route path="employees" element={<AdminEmployeesPage />} />
                 <Route path="products" element={<AdminProductsPage />} />
+                <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="tables" element={<StaffTablesPage workspace="admin" />} />
                 <Route path="orders" element={<StaffOrdersPage key="admin-history" mode="history" workspace="admin" />} />
                 <Route path="inventory" element={<StaffInventoryPage readOnly />} />

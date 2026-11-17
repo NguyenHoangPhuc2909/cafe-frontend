@@ -8,6 +8,7 @@ const adminMenu = [
   { label: 'Tổng quan', path: '/admin/dashboard', icon: 'dashboard' },
   { label: 'Nhân viên', path: '/admin/employees', icon: 'person' },
   { label: 'Thực đơn', path: '/admin/products', icon: 'restaurant_menu' },
+  { label: 'Danh mục', path: '/admin/categories', icon: 'restaurant_menu' },
   { label: 'Sơ đồ bàn', path: '/admin/tables', icon: 'table_restaurant' },
   { label: 'Lịch sử đơn hàng', path: '/admin/orders', icon: 'history' },
   { label: 'Tồn kho', path: '/admin/inventory', icon: 'inventory_2' },
