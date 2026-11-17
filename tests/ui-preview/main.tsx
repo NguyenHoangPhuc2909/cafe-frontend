@@ -16,6 +16,7 @@ import AdminProductsPage from '../../src/pages/Admin/AdminProductsPage';
 import AdminEmployeesPage from '../../src/pages/Admin/AdminEmployeesPage';
 import AdminReportsPage from '../../src/pages/Admin/AdminReportsPage';
 import AdminCategoriesPage from '../../src/pages/Admin/AdminCategoriesPage';
+import AdminIngredientsPage from '../../src/pages/Admin/AdminIngredientsPage';
 import { http } from '../../src/services/http';
 import type { ProductResponse } from '../../src/types/api';
 import type { OrderResponse } from '../../src/types/order';
@@ -51,6 +52,9 @@ http.defaults.adapter = async config => {
   else if (url === '/admin/products') data = page(empty ? [] : products);
   else if (url === '/admin/categories') data = [{ id: 1, name: 'Cà phê', type: 'PREPARED' }, { id: 2, name: 'Trà', type: 'PREPARED' }];
   else if (url === '/admin/ingredients' || url === '/staff/ingredients') data = empty ? [] : ingredients;
+  else if (url === '/admin/ingredients/management') data = empty ? [] : [...ingredients.map(item => ({ ...item, systemManaged: false, unitEditable: false, deletable: false })),
+    { id: 4, name: 'Ly mang đi M', unit: 'cái', stockQuantity: 100, minThreshold: 20, systemManaged: true, unitEditable: false, deletable: false },
+    { id: 5, name: 'Bột cacao', unit: 'g', stockQuantity: 0, minThreshold: 100, systemManaged: false, unitEditable: true, deletable: true }];
   else if (url === '/admin/employees') data = page(empty ? [] : [{ id: 1, username: 'nhanvien01', fullName: 'Nhân viên mẫu', email: 'preview@example.test', role: 'STAFF', isActive: true, createdAt: now }]);
   else if (url === '/staff/tables') data = empty ? [] : Array.from({length: 8}, (_, i) => ({ id: i + 1, name: `Bàn ${String(i + 1).padStart(2, '0')}`, qrCode: `preview-${i + 1}`, isActive: i !== 7 }));
   else if (/\/staff\/tables\/\d+\/sessions\/current/.test(url)) { const id = Number(url.split('/')[3]); data = { id, tableId: id, tableName: `Bàn ${id}`, status: 'OPEN', openedAt: now }; }
@@ -79,6 +83,7 @@ createRoot(document.getElementById('root')!).render(<UIProvider><StaffAuthContex
       <Route path="dashboard" element={<AdminDashboardPage />} />
       <Route path="products" element={<AdminProductsPage />} />
       <Route path="categories" element={<AdminCategoriesPage />} />
+      <Route path="ingredients" element={<AdminIngredientsPage />} />
       <Route path="employees" element={<AdminEmployeesPage />} />
       <Route path="tables" element={<StaffTablesPage workspace="admin" />} />
       <Route path="orders" element={<StaffOrdersPage mode="history" workspace="admin" />} />
