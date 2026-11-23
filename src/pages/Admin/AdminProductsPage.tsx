@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Alert, Table, Tag, Button, Select, Tooltip } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { Alert, Table, Switch, Button, Select, Tooltip, notification } from "antd";
 import SearchField from '../../components/ui/SearchField';
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import AdminProductModal from "../../components/admin/AdminProductModal";
@@ -9,6 +9,7 @@ import {
   getAdminCategories,
 } from "../../services/adminProducts";
 import { staffErrorMessage } from "../../services/staffApi";
+import { updateProductActive } from "../../services/staffProducts";
 import { formatCurrency } from "../../utils/format";
 import type { PageResponse, ProductResponse } from "../../types/api";
 import type {
@@ -42,6 +43,11 @@ export default function AdminProductsPage() {
   const [result, setResult] = useState<ProductResult | null>(null);
   const [keyword, setKeyword] = useState("");
   const [editor, setEditor] = useState<{ id?: number } | null>(null);
+  const [savingId, setSavingId] = useState<number | null>(null);
+  const [notificationApi, notificationHolder] = notification.useNotification({
+    placement: 'topRight', duration: 4, maxCount: 2,
+  });
+  const changingActive = useRef(false);
   const [categoryResult, setCategoryResult] = useState<CategoryResult | null>(
     null,
   );
@@ -100,11 +106,37 @@ export default function AdminProductsPage() {
 
   const pageError = current?.error ?? currentCategories?.error;
 
+  const changeActive = async (product: ProductResponse, active: boolean) => {
+    if (!token || changingActive.current) return;
+    changingActive.current = true;
+    setSavingId(product.id);
+    try {
+      await updateProductActive(token, product.id, active);
+      setResult(previous => {
+        if (previous?.token !== token || !previous.data) return previous;
+        return {
+          ...previous,
+          data: {
+            ...previous.data,
+            content: previous.data.content.map(item => item.id === product.id ? { ...item, isActive: active } : item),
+          },
+        };
+      });
+      notificationApi.success({ key: 'product-availability', title: `Đã ${active ? 'bật bán' : 'ngừng bán'} món ${product.name}.` });
+    } catch (cause) {
+      notificationApi.error({ key: 'product-availability', title: staffErrorMessage(cause) });
+    } finally {
+      changingActive.current = false;
+      setSavingId(null);
+    }
+  };
+
   return (
     <section className="admin-page">
+      {notificationHolder}
       <div className="admin-page-heading">
         <div><h1>Thực đơn của quán</h1><p>Quản lý món, giá bán và công thức pha chế.</p></div>
-        <Button type="primary" icon={<PlusOutlined aria-hidden="true" />} disabled={!currentCategories?.data?.length}
+        <Button type="primary" icon={<PlusOutlined aria-hidden="true" />} disabled={savingId !== null || !currentCategories?.data?.length}
           onClick={() => setEditor({})}>Thêm món</Button>
       </div>
 
@@ -205,10 +237,10 @@ export default function AdminProductsPage() {
           {
             title: "Trạng thái",
             dataIndex: "isActive",
-            render: (active: boolean) => (
-              <Tag color={active ? "green" : "default"}>
-                {active ? "Đang bán" : "Ngừng bán"}
-              </Tag>
+            render: (active: boolean, product) => (
+              <Switch checked={active} checkedChildren="Đang bán" unCheckedChildren="Ngừng bán"
+                aria-label={`Cho phép bán ${product.name}`} loading={savingId === product.id}
+                disabled={savingId !== null || !current || !token} onChange={value => void changeActive(product, value)} />
             ),
           },
           {
@@ -216,7 +248,7 @@ export default function AdminProductsPage() {
             key: "actions",
             render: (_, product) => <Tooltip title="Chỉnh sửa món và công thức">
               <Button icon={<EditOutlined aria-hidden="true" />} aria-label={`Chỉnh sửa ${product.name}`}
-                disabled={!currentCategories?.data?.length} onClick={() => setEditor({ id: product.id })} />
+                disabled={savingId !== null || !currentCategories?.data?.length} onClick={() => setEditor({ id: product.id })} />
             </Tooltip>,
           },
         ]}

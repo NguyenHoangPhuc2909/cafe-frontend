@@ -16,7 +16,7 @@ import AdminProductsPage from '../../src/pages/Admin/AdminProductsPage';
 import AdminEmployeesPage from '../../src/pages/Admin/AdminEmployeesPage';
 import AdminReportsPage from '../../src/pages/Admin/AdminReportsPage';
 import AdminCategoriesPage from '../../src/pages/Admin/AdminCategoriesPage';
-import AdminIngredientsPage from '../../src/pages/Admin/AdminIngredientsPage';
+import AdminInventoryPage from '../../src/pages/Admin/AdminInventoryPage';
 import { http } from '../../src/services/http';
 import type { ProductResponse } from '../../src/types/api';
 import type { OrderResponse } from '../../src/types/order';
@@ -83,11 +83,11 @@ createRoot(document.getElementById('root')!).render(<UIProvider><StaffAuthContex
       <Route path="dashboard" element={<AdminDashboardPage />} />
       <Route path="products" element={<AdminProductsPage />} />
       <Route path="categories" element={<AdminCategoriesPage />} />
-      <Route path="ingredients" element={<AdminIngredientsPage />} />
+      <Route path="ingredients" element={<Navigate to="/admin/inventory" replace />} />
       <Route path="employees" element={<AdminEmployeesPage />} />
       <Route path="tables" element={<StaffTablesPage workspace="admin" />} />
       <Route path="orders" element={<StaffOrdersPage mode="history" workspace="admin" />} />
-      <Route path="inventory" element={<StaffInventoryPage readOnly />} />
+      <Route path="inventory" element={<AdminInventoryPage />} />
       <Route path="reports" element={<AdminReportsPage />} />
     </Route>
     <Route path="*" element={<Navigate to="/staff/pos" replace />} />
