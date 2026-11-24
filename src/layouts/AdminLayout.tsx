@@ -18,7 +18,7 @@ const adminMenu: AdminMenuItem[] = [
     { label: 'Món & công thức', path: '/admin/products' },
     { label: 'Danh mục', path: '/admin/categories' },
   ] },
-  { label: 'Sơ đồ bàn', path: '/admin/tables', icon: 'table_restaurant' },
+  { label: 'Quản lý bàn', path: '/admin/tables', icon: 'table_restaurant' },
   { label: 'Lịch sử đơn hàng', path: '/admin/orders', icon: 'history' },
   { label: 'Kho', path: '/admin/inventory', icon: 'inventory_2' },
   { label: 'Báo cáo', path: '/admin/reports', icon: 'chart' },

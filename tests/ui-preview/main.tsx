@@ -17,6 +17,7 @@ import AdminEmployeesPage from '../../src/pages/Admin/AdminEmployeesPage';
 import AdminReportsPage from '../../src/pages/Admin/AdminReportsPage';
 import AdminCategoriesPage from '../../src/pages/Admin/AdminCategoriesPage';
 import AdminInventoryPage from '../../src/pages/Admin/AdminInventoryPage';
+import AdminTablesPage from '../../src/pages/Admin/AdminTablesPage';
 import { http } from '../../src/services/http';
 import type { ProductResponse } from '../../src/types/api';
 import type { OrderResponse } from '../../src/types/order';
@@ -56,6 +57,11 @@ http.defaults.adapter = async config => {
     { id: 4, name: 'Ly mang đi M', unit: 'cái', stockQuantity: 100, minThreshold: 20, systemManaged: true, unitEditable: false, deletable: false },
     { id: 5, name: 'Bột cacao', unit: 'g', stockQuantity: 0, minThreshold: 100, systemManaged: false, unitEditable: true, deletable: true }];
   else if (url === '/admin/employees') data = page(empty ? [] : [{ id: 1, username: 'nhanvien01', fullName: 'Nhân viên mẫu', email: 'preview@example.test', role: 'STAFF', isActive: true, createdAt: now }]);
+  else if (url === '/admin/tables') data = empty ? [] : [
+    { id: 1, name: 'Bàn 01', qrCode: 'preview-qr-01', isActive: true, hasOpenSession: true, openSessionId: 12, hasSessionHistory: true, canDeactivate: false, deletable: false },
+    { id: 2, name: 'Bàn 02', qrCode: 'preview-qr-02', isActive: true, hasOpenSession: false, openSessionId: null, hasSessionHistory: true, canDeactivate: true, deletable: false },
+    { id: 3, name: 'Bàn 03', qrCode: 'preview-qr-03', isActive: true, hasOpenSession: false, openSessionId: null, hasSessionHistory: false, canDeactivate: true, deletable: true },
+  ];
   else if (url === '/staff/tables') data = empty ? [] : Array.from({length: 8}, (_, i) => ({ id: i + 1, name: `Bàn ${String(i + 1).padStart(2, '0')}`, qrCode: `preview-${i + 1}`, isActive: i !== 7 }));
   else if (/\/staff\/tables\/\d+\/sessions\/current/.test(url)) { const id = Number(url.split('/')[3]); data = { id, tableId: id, tableName: `Bàn ${id}`, status: 'OPEN', openedAt: now }; }
   else if (url === '/staff/orders') data = page(empty ? [] : config.params?.status === 'PREPARING' ? orders.filter(o => o.status === 'PREPARING') : orders);
@@ -91,7 +97,7 @@ createRoot(document.getElementById('root')!).render(<UIProvider><StaffAuthContex
       <Route path="categories" element={<AdminCategoriesPage />} />
       <Route path="ingredients" element={<Navigate to="/admin/inventory" replace />} />
       <Route path="employees" element={<AdminEmployeesPage />} />
-      <Route path="tables" element={<StaffTablesPage workspace="admin" />} />
+      <Route path="tables" element={<AdminTablesPage />} />
       <Route path="orders" element={<StaffOrdersPage mode="history" workspace="admin" />} />
       <Route path="inventory" element={<AdminInventoryPage />} />
       <Route path="reports" element={<AdminReportsPage />} />
