@@ -328,7 +328,7 @@ export default function AdminTablesPage() {
                   <Space wrap size="small">
                     <Tag color="processing">Đang phục vụ #{item.openSessionId}</Tag>
                     <Link
-                      to={`/admin/orders?session=${item.openSessionId}&filter=all`}
+                      to={`/admin/orders?session=${item.openSessionId}`}
                       className="text-xs font-medium text-primary hover:underline"
                     >
                       Xem đơn

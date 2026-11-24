@@ -29,6 +29,7 @@ import AdminReportsPage from "./pages/Admin/AdminReportsPage";
 import AdminCategoriesPage from "./pages/Admin/AdminCategoriesPage";
 import AdminInventoryPage from "./pages/Admin/AdminInventoryPage";
 import AdminTablesPage from "./pages/Admin/AdminTablesPage";
+import AdminOrdersPage from "./pages/Admin/AdminOrdersPage";
 
 function App() {
   return (
@@ -69,7 +70,7 @@ function App() {
                 <Route path="categories" element={<AdminCategoriesPage />} />
                 <Route path="ingredients" element={<Navigate to="/admin/inventory" replace />} />
                 <Route path="tables" element={<AdminTablesPage />} />
-                <Route path="orders" element={<StaffOrdersPage key="admin-history" mode="history" workspace="admin" />} />
+                <Route path="orders" element={<AdminOrdersPage />} />
                 <Route path="inventory" element={<AdminInventoryPage />} />
                 <Route path="reports" element={<AdminReportsPage />} />
               </Route>

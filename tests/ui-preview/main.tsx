@@ -18,6 +18,7 @@ import AdminReportsPage from '../../src/pages/Admin/AdminReportsPage';
 import AdminCategoriesPage from '../../src/pages/Admin/AdminCategoriesPage';
 import AdminInventoryPage from '../../src/pages/Admin/AdminInventoryPage';
 import AdminTablesPage from '../../src/pages/Admin/AdminTablesPage';
+import AdminOrdersPage from '../../src/pages/Admin/AdminOrdersPage';
 import { http } from '../../src/services/http';
 import type { ProductResponse } from '../../src/types/api';
 import type { OrderResponse } from '../../src/types/order';
@@ -64,6 +65,7 @@ http.defaults.adapter = async config => {
   ];
   else if (url === '/staff/tables') data = empty ? [] : Array.from({length: 8}, (_, i) => ({ id: i + 1, name: `Bàn ${String(i + 1).padStart(2, '0')}`, qrCode: `preview-${i + 1}`, isActive: i !== 7 }));
   else if (/\/staff\/tables\/\d+\/sessions\/current/.test(url)) { const id = Number(url.split('/')[3]); data = { id, tableId: id, tableName: `Bàn ${id}`, status: 'OPEN', openedAt: now }; }
+  else if (url === '/admin/orders') data = page(empty ? [] : [{ id: 105, sessionId: 2, tableId: 2, tableName: 'Bàn 02', orderType: 'DINE_IN', totalAmount: 65000, status: 'COMPLETED', paymentStatus: 'PAID', paymentExpiresAt: null, createdAt: now, items: [{ id: 1, productName: 'Cà phê sữa đá', quantity: 1, price: 35000, size: 'M' }, { id: 2, productName: 'Trà đào', quantity: 1, price: 30000, size: 'L' }] }]);
   else if (url === '/staff/orders') data = page(empty ? [] : config.params?.status === 'PREPARING' ? orders.filter(o => o.status === 'PREPARING') : orders);
   else if (/\/staff\/orders\/\d+$/.test(url)) data = orders.find(o => o.id === Number(url.split('/').at(-1)));
   else if (url === '/staff/inventory/packaged') data = empty ? [] : [{ id: 6, name: 'Nước suối', unit: 'chai', stockQuantity: 20, isActive: true }];
@@ -98,7 +100,7 @@ createRoot(document.getElementById('root')!).render(<UIProvider><StaffAuthContex
       <Route path="ingredients" element={<Navigate to="/admin/inventory" replace />} />
       <Route path="employees" element={<AdminEmployeesPage />} />
       <Route path="tables" element={<AdminTablesPage />} />
-      <Route path="orders" element={<StaffOrdersPage mode="history" workspace="admin" />} />
+      <Route path="orders" element={<AdminOrdersPage />} />
       <Route path="inventory" element={<AdminInventoryPage />} />
       <Route path="reports" element={<AdminReportsPage />} />
     </Route>
