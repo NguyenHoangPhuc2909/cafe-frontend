@@ -76,6 +76,24 @@ http.defaults.adapter = async config => {
     ].filter(item => !config.params?.performedById || item.performedById === Number(config.params.performedById));
     data = page(receipts);
   }
+  else if (url === '/admin/reports/revenue') data = {
+    fromDate: config.params?.fromDate ?? '2026-11-24',
+    toDate: config.params?.toDate ?? '2026-11-24',
+    timeZone: 'Asia/Ho_Chi_Minh',
+    generatedAt: now,
+    totalRevenue: empty ? 0 : 195000,
+    paymentCount: empty ? 0 : 4,
+    averageOrderValue: empty ? 0 : 48750,
+    methods: [
+      { method: 'CASH', amount: empty ? 0 : 120000, paymentCount: empty ? 0 : 2 },
+      { method: 'BANK_TRANSFER', amount: empty ? 0 : 75000, paymentCount: empty ? 0 : 2 },
+    ],
+    daily: [{ date: config.params?.toDate ?? '2026-11-24', revenue: empty ? 0 : 195000, cashRevenue: empty ? 0 : 120000, bankTransferRevenue: empty ? 0 : 75000, paymentCount: empty ? 0 : 4 }],
+    topProducts: empty ? [] : [
+      { productId: 1, productName: 'Cà phê sữa đá', quantitySold: 3, revenue: 105000 },
+      { productId: 2, productName: 'Trà đào', quantitySold: 2, revenue: 90000 },
+    ],
+  };
   else if (url === '/staff/revenue/today') data = { date: '2026-11-17', timeZone: 'Asia/Ho_Chi_Minh', updatedAt: now, totalAmount: empty ? 0 : 95000, paymentCount: empty ? 0 : 2, methods: [{method: 'CASH', amount: empty ? 0 : 55000, paymentCount: empty ? 0 : 1}, {method: 'BANK_TRANSFER', amount: empty ? 0 : 40000, paymentCount: empty ? 0 : 1}], payments: page(empty ? [] : [{ id: 1, orderId: 102, method: 'CASH', amount: 55000, paidAt: now }, { id: 2, orderId: 103, method: 'BANK_TRANSFER', amount: 40000, paidAt: now }]) };
   else throw new Error(`Chưa có dữ liệu xem thiết kế cho ${url}`);
   return { data: { success: true, message: 'Dữ liệu mô phỏng', data }, status: 200, statusText: 'OK', headers: {}, config };
