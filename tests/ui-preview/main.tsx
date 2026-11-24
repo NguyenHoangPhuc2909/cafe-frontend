@@ -76,6 +76,16 @@ http.defaults.adapter = async config => {
     ].filter(item => !config.params?.performedById || item.performedById === Number(config.params.performedById));
     data = page(receipts);
   }
+  else if (url === '/admin/dashboard') data = {
+    businessDate: '2026-11-24',
+    timeZone: 'Asia/Ho_Chi_Minh',
+    generatedAt: now,
+    todayRevenue: { totalRevenue: empty ? 0 : 195000, completedPaymentCount: empty ? 0 : 4, cashRevenue: empty ? 0 : 120000, bankTransferRevenue: empty ? 0 : 75000 },
+    todayOrders: { total: empty ? 0 : 6, pending: empty ? 0 : 1, preparing: empty ? 0 : 1, completed: empty ? 0 : 4, expired: 0 },
+    tables: { total: 8, activeTotal: 7, openCount: empty ? 0 : 2, idleCount: empty ? 7 : 5, inactiveCount: 1 },
+    lowStock: { lowIngredientCount: empty ? 0 : 1, outOfStockIngredientCount: empty ? 0 : 1, outOfStockPackagedCount: 0, totalAlerts: empty ? 0 : 2, items: empty ? [] : [{ itemType: 'INGREDIENT', id: 5, name: 'Bột cacao', unit: 'g', stockQuantity: 0, minThreshold: 100, outOfStock: true }] },
+    recentRevenue: [{ date: '2026-11-24', revenue: empty ? 0 : 195000, paymentCount: empty ? 0 : 4 }],
+  };
   else if (url === '/admin/reports/revenue') data = {
     fromDate: config.params?.fromDate ?? '2026-11-24',
     toDate: config.params?.toDate ?? '2026-11-24',
