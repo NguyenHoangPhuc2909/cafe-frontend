@@ -6,16 +6,27 @@ import type {
 } from "../../services/staffInventory";
 import type { StockReceiptHistoryFilters } from "../../types/inventory";
 
+export interface StockReceiptStaffOption {
+  id: number;
+  label: string;
+}
+
 interface Props {
   ingredients: Ingredient[];
   packaged: PackagedStock[];
+  staffMembers?: StockReceiptStaffOption[];
   onApply: (filters: StockReceiptHistoryFilters) => void;
+  onRefresh?: () => void;
+  refreshDisabled?: boolean;
 }
 
 export default function StockReceiptFilters({
   ingredients,
   packaged,
+  staffMembers,
   onApply,
+  onRefresh,
+  refreshDisabled = false,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +37,7 @@ export default function StockReceiptFilters({
     const fromDate = String(form.get("fromDate") || "");
     const toDate = String(form.get("toDate") || "");
     const item = String(form.get("item") || "");
+    const performedById = String(form.get("performedById") || "");
 
     if (fromDate && toDate && fromDate > toDate) {
       setError("Ngày bắt đầu không được lớn hơn ngày kết thúc.");
@@ -44,6 +56,13 @@ export default function StockReceiptFilters({
         filters.ingredientId = Number(id);
       } else if (type === "product") {
         filters.productId = Number(id);
+      }
+    }
+
+    if (performedById) {
+      const parsedId = Number(performedById);
+      if (Number.isSafeInteger(parsedId) && parsedId > 0) {
+        filters.performedById = parsedId;
       }
     }
 
@@ -106,6 +125,24 @@ export default function StockReceiptFilters({
           </select>
         </label>
 
+        {staffMembers && (
+          <label className="flex min-w-48 flex-col gap-1 text-sm">
+            Người nhập
+            <select
+              name="performedById"
+              defaultValue=""
+              className="min-h-control rounded-lg border border-control-border px-3"
+            >
+              <option value="">Tất cả nhân viên</option>
+              {staffMembers.map((staff) => (
+                <option key={staff.id} value={staff.id}>
+                  {staff.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+
         <Button type="primary" htmlType="submit">
           Lọc
         </Button>
@@ -113,6 +150,12 @@ export default function StockReceiptFilters({
         <Button htmlType="reset">
           Xóa lọc
         </Button>
+
+        {onRefresh && (
+          <Button type="default" disabled={refreshDisabled} onClick={onRefresh}>
+            Làm mới
+          </Button>
+        )}
       </div>
 
       {error && <Alert type="error" showIcon title={error} />}

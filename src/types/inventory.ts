@@ -17,7 +17,7 @@ export interface StockMovementResponse {
   ingredientId: number | null;
   productId: number | null;
   itemName: string;
-  unit: string;
+  unit: string | null;
   quantityDelta: number;
   availableBefore: number;
   availableAfter: number;
@@ -32,4 +32,5 @@ export interface StockReceiptHistoryFilters {
   toDate?: string;
   ingredientId?: number;
   productId?: number;
+  performedById?: number;
 }

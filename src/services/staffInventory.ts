@@ -98,6 +98,41 @@ export async function receiveStaffStock(
   return movement;
 }
 
+function isValidStockMovement(movement: StockMovementResponse): boolean {
+  const hasIngredient = movement.ingredientId !== null;
+  const hasProduct = movement.productId !== null;
+
+  return (
+    Number.isSafeInteger(movement.id) &&
+    movement.id > 0 &&
+    movement.type === "RECEIPT" &&
+    hasIngredient !== hasProduct &&
+    (movement.ingredientId === null ||
+      (Number.isSafeInteger(movement.ingredientId) && movement.ingredientId > 0)) &&
+    (movement.productId === null ||
+      (Number.isSafeInteger(movement.productId) && movement.productId > 0)) &&
+    typeof movement.itemName === "string" &&
+    movement.itemName.trim().length > 0 &&
+    (movement.unit === null || typeof movement.unit === "string") &&
+    typeof movement.quantityDelta === "number" &&
+    Number.isFinite(movement.quantityDelta) &&
+    movement.quantityDelta > 0 &&
+    typeof movement.availableBefore === "number" &&
+    Number.isFinite(movement.availableBefore) &&
+    movement.availableBefore >= 0 &&
+    typeof movement.availableAfter === "number" &&
+    Number.isFinite(movement.availableAfter) &&
+    movement.availableAfter >= movement.availableBefore &&
+    Number.isSafeInteger(movement.performedById) &&
+    movement.performedById > 0 &&
+    typeof movement.performedByName === "string" &&
+    movement.performedByName.trim().length > 0 &&
+    typeof movement.note === "string" &&
+    typeof movement.createdAt === "string" &&
+    Number.isFinite(Date.parse(movement.createdAt))
+  );
+}
+
 export async function getStaffReceiptHistory(
   token: string,
   page = 0,
@@ -109,19 +144,28 @@ export async function getStaffReceiptHistory(
     ApiResponse<PageResponse<StockMovementResponse>>
   >("/staff/inventory/receipts", {
     headers: { Authorization: `Bearer ${token}` },
-    params: { 
-      page, 
+    params: {
+      page,
       size,
       fromDate: filters.fromDate || undefined,
       toDate: filters.toDate || undefined,
       ingredientId: filters.ingredientId,
       productId: filters.productId,
-     },
+      performedById: filters.performedById,
+    },
     signal,
   });
 
   if (!data.success || !data.data || !Array.isArray(data.data.content)) {
     throw new Error(data.message || "Chưa tải được lịch sử nhập kho.");
+  }
+
+  if (
+    !Number.isSafeInteger(data.data.totalElements) ||
+    data.data.totalElements < 0 ||
+    !data.data.content.every(isValidStockMovement)
+  ) {
+    throw new Error("Dữ liệu lịch sử nhập kho từ máy chủ chưa hợp lệ.");
   }
 
   return data.data;

@@ -61,7 +61,13 @@ http.defaults.adapter = async config => {
   else if (url === '/staff/orders') data = page(empty ? [] : config.params?.status === 'PREPARING' ? orders.filter(o => o.status === 'PREPARING') : orders);
   else if (/\/staff\/orders\/\d+$/.test(url)) data = orders.find(o => o.id === Number(url.split('/').at(-1)));
   else if (url === '/staff/inventory/packaged') data = empty ? [] : [{ id: 6, name: 'Nước suối', unit: 'chai', stockQuantity: 20, isActive: true }];
-  else if (url === '/staff/inventory/receipts') data = page([]);
+  else if (url === '/staff/inventory/receipts') {
+    const receipts = empty ? [] : [
+      { id: 101, type: 'RECEIPT', ingredientId: 1, productId: null, itemName: 'Cà phê hạt', unit: 'g', quantityDelta: 500, availableBefore: 200, availableAfter: 700, performedById: 1, performedByName: 'Nhân viên mẫu', note: 'Nhập ca sáng', createdAt: now },
+      { id: 102, type: 'RECEIPT', ingredientId: null, productId: 6, itemName: 'Nước suối', unit: 'chai', quantityDelta: 12, availableBefore: 8, availableAfter: 20, performedById: 1, performedByName: 'Nhân viên mẫu', note: 'Bổ sung tủ mát', createdAt: now },
+    ].filter(item => !config.params?.performedById || item.performedById === Number(config.params.performedById));
+    data = page(receipts);
+  }
   else if (url === '/staff/revenue/today') data = { date: '2026-11-17', timeZone: 'Asia/Ho_Chi_Minh', updatedAt: now, totalAmount: empty ? 0 : 95000, paymentCount: empty ? 0 : 2, methods: [{method: 'CASH', amount: empty ? 0 : 55000, paymentCount: empty ? 0 : 1}, {method: 'BANK_TRANSFER', amount: empty ? 0 : 40000, paymentCount: empty ? 0 : 1}], payments: page(empty ? [] : [{ id: 1, orderId: 102, method: 'CASH', amount: 55000, paidAt: now }, { id: 2, orderId: 103, method: 'BANK_TRANSFER', amount: 40000, paidAt: now }]) };
   else throw new Error(`Chưa có dữ liệu xem thiết kế cho ${url}`);
   return { data: { success: true, message: 'Dữ liệu mô phỏng', data }, status: 200, statusText: 'OK', headers: {}, config };

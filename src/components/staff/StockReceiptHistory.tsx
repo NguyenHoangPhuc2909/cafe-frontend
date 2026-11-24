@@ -5,7 +5,9 @@ import type { PageResponse } from "../../types/api";
 import type { StockMovementResponse } from "../../types/inventory";
 import { getStaffReceiptHistory } from "../../services/staffInventory";
 import { staffErrorMessage } from "../../services/staffApi";
-import StockReceiptFilters from "./StockReceiptFilters";
+import StockReceiptFilters, {
+  type StockReceiptStaffOption,
+} from "./StockReceiptFilters";
 import type { Ingredient, PackagedStock } from "../../services/staffInventory";
 import type { StockReceiptHistoryFilters } from "../../types/inventory";
 
@@ -14,6 +16,7 @@ interface Props {
   refreshVersion: number;
   ingredients: Ingredient[];
   packaged: PackagedStock[];
+  staffMembers?: StockReceiptStaffOption[];
 }
 
 interface Result {
@@ -27,6 +30,12 @@ interface Result {
 }
 
 const PAGE_SIZE = 20;
+
+function formatQuantity(value: number, unit: string | null, prefix = ""): string {
+  const formatted = `${prefix}${value.toLocaleString("vi-VN")}`;
+  const trimmedUnit = unit?.trim();
+  return trimmedUnit ? `${formatted} ${trimmedUnit}` : formatted;
+}
 
 const columns: ColumnsType<StockMovementResponse> = [
   {
@@ -49,20 +58,17 @@ const columns: ColumnsType<StockMovementResponse> = [
   {
     title: "Số lượng nhập",
     dataIndex: "quantityDelta",
-    render: (value: number, row) =>
-      `+${value.toLocaleString("vi-VN")} ${row.unit}`,
+    render: (value: number, row) => formatQuantity(value, row.unit, "+"),
   },
   {
     title: "Tồn trước",
     dataIndex: "availableBefore",
-    render: (value: number, row) =>
-      `${value.toLocaleString("vi-VN")} ${row.unit}`,
+    render: (value: number, row) => formatQuantity(value, row.unit),
   },
   {
     title: "Tồn sau",
     dataIndex: "availableAfter",
-    render: (value: number, row) =>
-      `${value.toLocaleString("vi-VN")} ${row.unit}`,
+    render: (value: number, row) => formatQuantity(value, row.unit),
   },
   {
     title: "Người nhập",
@@ -82,6 +88,7 @@ export default function StockReceiptHistory({
   refreshVersion,
   ingredients,
   packaged,
+  staffMembers,
 }: Props) {
   const [page, setPage] = useState(0);
   const [retry, setRetry] = useState(0);
@@ -129,15 +136,26 @@ export default function StockReceiptHistory({
     result.retry === retry &&
     result?.filters === filters ? result : null;
 
+  const hasActiveFilters = Boolean(
+    filters.fromDate ||
+    filters.toDate ||
+    filters.ingredientId ||
+    filters.productId ||
+    filters.performedById
+  );
+
   return (
     <section aria-label="Lịch sử nhập kho">
       <StockReceiptFilters
         ingredients={ingredients}
         packaged={packaged}
+        staffMembers={staffMembers}
         onApply={(nextFilters) => {
           setPage(0);
           setFilters(nextFilters);
         }}
+        onRefresh={() => setRetry((value) => value + 1)}
+        refreshDisabled={!current}
       />
       {current?.error ? (
         <Alert
@@ -157,7 +175,11 @@ export default function StockReceiptHistory({
           dataSource={current?.data?.content ?? []}
           loading={!current}
           scroll={{ x: 1100 }}
-          locale={{ emptyText: "Chưa có lịch sử nhập kho." }}
+          locale={{
+            emptyText: hasActiveFilters
+              ? "Không tìm thấy phiếu nhập phù hợp với bộ lọc."
+              : "Chưa có lịch sử nhập kho.",
+          }}
           pagination={{
             current: page + 1,
             pageSize: PAGE_SIZE,
